@@ -1,0 +1,8 @@
+struct SteeringStatus{
+    float position;
+};
+
+struct SteeringCommand{
+    float position;
+    float speed;
+};
