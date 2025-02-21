@@ -1,0 +1,34 @@
+{
+  "ui_projectName": "steering_column",
+  "ui_settings": {
+    "confirmDelete": true,
+    "showEZSecure": false,
+    "enableValuetypes": false,
+    "autosave": 1,
+    "enforceSnippetSeparation": true,
+    "useAsSnippetIfName": false,
+    "enableValidation": true
+  },
+  "ui_lastSaveTime": "19/2/2025 @ 21:56:17",
+  "ui_creationDate": "19/2/2025 @ 15:58:42",
+  "ui_creationSysDVersion": "7.3.0.5",
+  "ui_projectNotes": "",
+  "ui_include": [
+    {
+      "path": "BaselineRoot.documentationONLY.xml",
+      "readonly": true,
+      "builtin": true
+    },
+    {
+      "path": "BuiltinProfiles.documentationONLY.xml",
+      "readonly": true,
+      "builtin": true
+    },
+    {
+      "path": "USER_QOS_PROFILES.xml",
+      "readonly": false,
+      "builtin": false
+    }
+  ],
+  "ui_projectGUID": "85b0cf96-b6c8-f522-6054-797bf2573729"
+}
