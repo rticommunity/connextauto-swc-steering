@@ -61,23 +61,36 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
     dds::sub::DataReader<SteeringCommand> command_reader =
     rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringCommand>>(
         participant,
-        "Publisher::SteeringCommandTopicReader");
+        "Subscriber::SteeringCommandTopicReader");
 
     // Enable the participant and underlying entities recursively
     participant.enable();
 
-    SteeringStatus data;
     // Main loop, write data
-    for (unsigned int samples_written = 0;
-    !application::shutdown_requested && samples_written < sample_count;
-    samples_written++) {
-        // Modify the data to be written here
-        std::cout << "Writing SteeringStatus, count " << samples_written << std::endl;
+    // for (unsigned int samples_written = 0;
+    // !application::shutdown_requested && samples_written < sample_count;
+    // samples_written++) {
+    //     // Modify the data to be written here
+    //     std::cout << "Writing SteeringStatus, count " << samples_written << std::endl;
 
-        status_writer.write(data);
+    //     status_writer.write(data);
 
-        // Send once every second
-        rti::util::sleep(dds::core::Duration(1));
+    //     // Send once every second
+    //     rti::util::sleep(dds::core::Duration(1));
+    // }
+
+    std::cout << "Actuator loop starting..." << std::endl;
+    while (!application::shutdown_requested) {
+        dds::sub::LoanedSamples<SteeringCommand> samples = command_reader.take();
+        for (const auto &sample : samples) {
+            if (sample.info().valid()) {
+                // Process the data
+                status_writer.write(SteeringStatus(sample.data().position()));
+            }
+        }
+
+        // Sleep for a polling interval
+        rti::util::sleep(dds::core::Duration(0, 500000000));
     }
 }
 
