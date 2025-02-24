@@ -18,21 +18,6 @@ def update_value(val):
     label.config(text=f"Value: {value}")
     command_writer.write(steering_command_data)
 
-# Create the main window
-root = tk.Tk()
-root.title("Slider Control")
-
-# Set the size of the window
-root.geometry("600x150")
-
-# Set up the slider
-slider = tk.Scale(root, from_=-180, to=180, orient="horizontal", command=update_value, length=500, width=30)
-slider.pack(pady=20)
-
-# Label to display the selected value
-label = tk.Label(root, text="Value: 0")
-label.pack()
-
 # Load the QoS provider with the XML configuration
 qos_provider = dds.QosProvider.default
 
@@ -50,6 +35,23 @@ command_writer = dds.DynamicData.DataWriter(
 participant.enable()
 
 print("DomainParticipant and entities created and enabled successfully.")
+
+# Create the main window
+root = tk.Tk()
+root.title("Slider Control")
+
+# Set the size of the window
+root.geometry("600x150")
+
+# Set up the slider
+slider = tk.Scale(root, from_=-180, to=180, orient="horizontal", command=update_value, length=500, width=30)
+slider.pack(pady=20)
+
+# Label to display the selected value
+label = tk.Label(root, text="Value: 0")
+label.pack()
+
+update_value(0)
 
 # Run the application
 root.mainloop()
