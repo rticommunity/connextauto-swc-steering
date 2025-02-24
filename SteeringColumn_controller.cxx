@@ -72,12 +72,12 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
     !application::shutdown_requested && samples_written < sample_count;
     samples_written++) {
         // Modify the data to be written here
-        std::cout << "Writing Steering Position: " << samples_written << std::endl;
-        data.position(samples_written);
+        data.position(samples_written % 360);
+        std::cout << "Writing Steering Position: " << data.position() << std::endl;
         command_writer.write(data);
 
         // Send once every second
-        rti::util::sleep(dds::core::Duration(1));
+        rti::util::sleep(dds::core::Duration(0, 100000000));
     }
 }
 

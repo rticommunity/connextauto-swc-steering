@@ -29,6 +29,22 @@
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "SteeringTypes.hpp"
 
+void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWriter<SteeringStatus> writer)
+{
+    // Take all samples
+    dds::sub::LoanedSamples<SteeringCommand> samples = reader.take();
+    for (auto sample : samples) {
+        if (sample.info().valid()) {
+            writer.write(SteeringStatus(sample.data().position()));
+        } else {
+            std::cout << "Instance state changed to "
+            << sample.info().state().instance_state() << std::endl;
+        }
+    }
+
+    return;
+} // The LoanedSamples destructor returns the loan
+
 void run_publisher_application(unsigned int domain_id, unsigned int sample_count)
 {
     // DDS objects behave like shared pointers or value types
@@ -63,34 +79,23 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
         participant,
         "Subscriber::SteeringCommandTopicReader");
 
+    // Create a ReadCondition for any data received on this reader and set a
+    // handler to process the data
+    dds::sub::cond::ReadCondition read_condition(
+        command_reader,
+        dds::sub::status::DataState::any(),
+        [command_reader, status_writer]() { process_data(command_reader, status_writer); });
+
+    // WaitSet will be woken when the attached condition is triggered
+    dds::core::cond::WaitSet waitset;
+    waitset += read_condition;
+
     // Enable the participant and underlying entities recursively
     participant.enable();
 
-    // Main loop, write data
-    // for (unsigned int samples_written = 0;
-    // !application::shutdown_requested && samples_written < sample_count;
-    // samples_written++) {
-    //     // Modify the data to be written here
-    //     std::cout << "Writing SteeringStatus, count " << samples_written << std::endl;
-
-    //     status_writer.write(data);
-
-    //     // Send once every second
-    //     rti::util::sleep(dds::core::Duration(1));
-    // }
-
     std::cout << "Actuator loop starting..." << std::endl;
     while (!application::shutdown_requested) {
-        dds::sub::LoanedSamples<SteeringCommand> samples = command_reader.take();
-        for (const auto &sample : samples) {
-            if (sample.info().valid()) {
-                // Process the data
-                status_writer.write(SteeringStatus(sample.data().position()));
-            }
-        }
-
-        // Sleep for a polling interval
-        rti::util::sleep(dds::core::Duration(0, 500000000));
+        waitset.dispatch(dds::core::Duration(1));
     }
 }
 
