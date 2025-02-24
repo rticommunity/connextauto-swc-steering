@@ -61,7 +61,7 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
     dds::sub::DataReader<SteeringStatus> status_reader =
     rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringStatus>>(
         participant,
-        "Publisher::SteeringStatusTopicReader");
+        "Subscriber::SteeringStatusTopicReader");
 
     // Enable the participant and underlying entities recursively
     participant.enable();
@@ -72,8 +72,8 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
     !application::shutdown_requested && samples_written < sample_count;
     samples_written++) {
         // Modify the data to be written here
-        std::cout << "Writing SteeringCommand, count " << samples_written << std::endl;
-
+        std::cout << "Writing Steering Position: " << samples_written << std::endl;
+        data.position(samples_written);
         command_writer.write(data);
 
         // Send once every second

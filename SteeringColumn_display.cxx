@@ -37,7 +37,7 @@ int process_data(dds::sub::DataReader< SteeringStatus> reader)
     for (auto sample : samples) {
         if (sample.info().valid()) {
             count++;
-            std::cout << sample.data() << std::endl;
+            std::cout << "Steering Column Position: " << sample.data().position() << std::endl;
         } else {
             std::cout << "Instance state changed to "
             << sample.info().state().instance_state() << std::endl;
@@ -89,9 +89,8 @@ void run_subscriber_application(unsigned int domain_id, unsigned int sample_coun
     // Enable the participant and underlying entities recursively
     participant.enable();
 
+    std::cout << "Display starting..." << std::endl;
     while (!application::shutdown_requested && samples_read < sample_count) {
-        std::cout << "SteeringStatus subscriber sleeping up to 1 sec..." << std::endl;
-
         // Run the handlers of the active conditions. Wait for up to 1 second.
         waitset.dispatch(dds::core::Duration(1));
     }
