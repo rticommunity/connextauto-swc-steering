@@ -36,9 +36,6 @@ void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWr
     for (auto sample : samples) {
         if (sample.info().valid()) {
             writer.write(SteeringStatus(sample.data().position()));
-        } else {
-            std::cout << "Instance state changed to "
-            << sample.info().state().instance_state() << std::endl;
         }
     }
 
