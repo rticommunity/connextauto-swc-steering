@@ -68,6 +68,18 @@
         <domain_participant_qos base_name="SteeringColumn_Library::DP_Profile">
         </domain_participant_qos>
       </domain_participant>
+      <domain_participant name="PythonDisplay" domain_ref="SteeringColumn_DomainLibrary::UserControls">
+        <subscriber name="Subscriber">
+          <data_reader name="SteeringStatusTopicReader" topic_ref="SteeringStatusTopic">
+            <datareader_qos base_name="SteeringColumn_Library::SteeringStatus">
+            </datareader_qos>
+          </data_reader>
+          <subscriber_qos base_name="SteeringColumn_Library::SteeringStatus">
+          </subscriber_qos>
+        </subscriber>
+        <domain_participant_qos base_name="SteeringColumn_Library::DP_Profile">
+        </domain_participant_qos>
+      </domain_participant>
       <domain_participant name="SteeringColumn" domain_ref="SteeringColumn_DomainLibrary::UserControls">
         <publisher name="Publisher">
           <data_writer name="SteeringStatusTopicWriter" topic_ref="SteeringStatusTopic">
