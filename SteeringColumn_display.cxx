@@ -38,9 +38,6 @@ int process_data(dds::sub::DataReader< SteeringStatus> reader)
         if (sample.info().valid()) {
             count++;
             std::cout << "Steering Column Position: " << sample.data().position() << std::endl;
-        } else {
-            std::cout << "Instance state changed to "
-            << sample.info().state().instance_state() << std::endl;
         }
     }
 
