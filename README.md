@@ -12,7 +12,7 @@ Demonstrate Sterring Column control use case using RTI Connext DDS.
   sudo apt-get install python3-pil python3-pil.imagetk
   ```
 
-- RTI Connext Professional 7.3 LTS
+- RTI Connext Professional 7.3 LTS (SDK)
 
 - [connextauto-bus](https://github.com/rticommunity/connextauto-bus) provides the common data model, data interfaces, common build system, and component
 launcher for components in the connextauto ecosystem, and it is:
@@ -31,7 +31,7 @@ launcher for components in the connextauto ecosystem, and it is:
 - Build for the target $RTI_ARCH
 
       export RTI_ARCH=x64Linux4gcc7.3.0
-      make -f makefile_SteeringTypes_$RTI_ARCH
+      make -f makefile_$RTI_ARCH
 
 - Run the applications using the launcher scripts
 
