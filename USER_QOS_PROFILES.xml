@@ -22,17 +22,45 @@
       </qos_profile>
       <qos_profile name="SteeringCommand" base_name="BuiltinQosLib::Pattern.Event">
         <datareader_qos>
+          <liveliness>
+            <lease_duration>
+              <sec>1</sec>
+              <nanosec>DURATION_ZERO_NSEC</nanosec>
+            </lease_duration>
+          </liveliness>
           <ownership>
             <kind>EXCLUSIVE_OWNERSHIP_QOS</kind>
           </ownership>
         </datareader_qos>
         <datawriter_qos>
+          <liveliness>
+            <lease_duration>
+              <sec>DURATION_ZERO_SEC</sec>
+              <nanosec>250000000</nanosec>
+            </lease_duration>
+          </liveliness>
           <ownership>
             <kind>EXCLUSIVE_OWNERSHIP_QOS</kind>
           </ownership>
         </datawriter_qos>
       </qos_profile>
       <qos_profile name="SteeringStatus" base_name="BuiltinQosLib::Pattern.Status">
+        <datareader_qos>
+          <liveliness>
+            <lease_duration>
+              <sec>1</sec>
+              <nanosec>DURATION_ZERO_NSEC</nanosec>
+            </lease_duration>
+          </liveliness>
+        </datareader_qos>
+        <datawriter_qos>
+          <liveliness>
+            <lease_duration>
+              <sec>DURATION_ZERO_SEC</sec>
+              <nanosec>250000000</nanosec>
+            </lease_duration>
+          </liveliness>
+        </datawriter_qos>
       </qos_profile>
     </qos_library>
 
