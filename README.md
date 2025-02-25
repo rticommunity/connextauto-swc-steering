@@ -36,13 +36,15 @@ launcher for components in the connextauto ecosystem, and it is:
 - Run the applications using the launcher scripts
     
       # Steering Display
-      make -f makefile_$RTI_ARCH display
+      make -f makefile_$RTI_ARCH display      # C++ app
+      make -f makefile_$RTI_ARCH pydisplay    # python GUI
 
       # SteeringController
-      make -f makefile_$RTI_ARCH controller
+      make -f makefile_$RTI_ARCH controller   # C++ app
+      make -f makefile_$RTI_ARCH pycontroller # python GUI
 
       # Steering Column
-      make -f makefile_$RTI_ARCH actuator
+      make -f makefile_$RTI_ARCH actuator     # C++ app
 
 ## Overview
 

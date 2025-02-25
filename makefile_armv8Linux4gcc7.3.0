@@ -136,6 +136,12 @@ controller: objs/$(TARGET_ARCH)/SteeringColumn_controller
 actuator: objs/$(TARGET_ARCH)/SteeringColumn_actuator
 	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_actuator
 
+pydisplay:
+	$(DATABUSHOME)/bin/run Steering ./display.py
+
+pycontroller:
+	$(DATABUSHOME)/bin/run Steering ./controller.py
+
 # Clean generated files and dirs
 clean:
 	rm -rf objs

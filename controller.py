@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import tkinter as tk
 import rti.connextdds as dds
 import argparse
@@ -29,12 +30,12 @@ qos_provider = dds.QosProvider.default
 
 # Create a DomainParticipant from the configuration
 participant = qos_provider.create_participant_from_config(
-    "SteeringColumnParticipantLibrary::Controller"
+    "DriveParticipantLib::SteeringController"
 )
 
 # Lookup the DataWriter from the configuration
 command_writer = dds.DynamicData.DataWriter(
-    participant.find_datawriter("Publisher::SteeringCommandTopicWriter")
+    participant.find_datawriter("outputs::Steering_writer")
 )
 
 # Set DataWriter Strength

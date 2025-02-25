@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import tkinter as tk
 from PIL import Image, ImageTk
 import rti.connextdds as dds
@@ -27,12 +28,12 @@ qos_provider = dds.QosProvider.default
 
 # Create a DomainParticipant using the specified QoS profile
 participant = qos_provider.create_participant_from_config(
-    "SteeringColumnParticipantLibrary::Display"
+    "DriveParticipantLib::SteeringDisplay"
 )
 
 # Get the DataReader
 reader = dds.DynamicData.DataReader(
-    participant.find_datareader("Subscriber::SteeringStatusTopicReader")
+    participant.find_datareader("inputs::Steering_reader")
 )
 
 participant.enable()
