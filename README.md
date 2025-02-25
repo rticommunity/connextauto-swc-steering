@@ -28,9 +28,14 @@ launcher for components in the connextauto ecosystem, and it is:
 
       git clone <a_git_url_to_this_repository>
 
+- Build for the target $RTI_ARCH
+
+      export RTI_ARCH=x64Linux4gcc7.3.0
+      make -f makefile_SteeringTypes_$RTI_ARCH
+
 - Run the applications using the launcher scripts
 
-      $DATABUSHOME/bin/run Steering <./path/to/app>
+      $DATABUSHOME/bin/run Steering ./objs/$RTI_ARCH/SteeringColumn_<app>
     
   For documentation on the `$DATABUSHOME/bin/run` launcher utility, please refer to the documentation located at [`$DATABUSHOME/doc/Run.md`](https://github.com/rticommunity/connextauto-bus/blob/develop/doc/Run.md).
 

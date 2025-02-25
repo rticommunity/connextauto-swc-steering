@@ -28,26 +28,25 @@
 //    https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/api/connext_dds/api_cpp2/group__DDSCpp2Conventions.html
 
 #include "application.hpp"  // for command line parsing and ctrl-c
-#include "SteeringTypes.hpp"
+#include "Steering_t.hpp"
 
 #define OUTPUT_WIDTH 33
 
-void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWriter<SteeringStatus> writer)
+void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, dds::pub::DataWriter<dds::actuation::SteeringActual> writer)
 {
     // Take all samples
-    dds::sub::LoanedSamples<SteeringCommand> samples = reader.take();
+    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.take();
     for (auto sample : samples) {
         if (sample.info().valid()) {
-            writer.write(SteeringStatus(sample.data().position()));
+            writer.write(dds::actuation::SteeringActual(sample.data().position()));
         }
     }
 
     return;
 } // The LoanedSamples destructor returns the loan
 
-void handle_status(dds::sub::DataReader<SteeringCommand> reader,
-                   dds::pub::DataWriter<SteeringStatus> writer)
-{
+void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, 
+                   dds::pub::DataWriter<dds::actuation::SteeringActual> writer){
     bool safety_position(false);
 
     dds::core::status::StatusMask status_mask = reader.status_changes();
@@ -87,7 +86,7 @@ void handle_status(dds::sub::DataReader<SteeringCommand> reader,
     }
 
     if(safety_position) {
-        writer.write(SteeringStatus(0));
+        writer.write(dds::actuation::SteeringActual(0));
         std::cout << "Writing Steering Position: 0" << std::endl;
     }
 }
@@ -100,8 +99,8 @@ void run_publisher_application(unsigned int domain_id)
     // When using user-generated types, you must register the type with RTI
     // Connext DDS before creating the participants and the rest of the entities
     // in your system
-    rti::domain::register_type<SteeringStatus>("SteeringStatus");
-    rti::domain::register_type<SteeringCommand>("SteeringCommand");
+    rti::domain::register_type<dds::actuation::SteeringActual>("dds::actuation::SteeringActual");
+    rti::domain::register_type<dds::actuation::SteeringDesired>("dds::actuation::SteeringDesired");
 
     // Create the participant, changing the domain id from the one in the
     // configuration
@@ -115,14 +114,14 @@ void run_publisher_application(unsigned int domain_id)
         params);
 
     // Lookup the DataWriter from the configuration
-    dds::pub::DataWriter<SteeringStatus> status_writer =
-    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<SteeringStatus>>(
+    dds::pub::DataWriter<dds::actuation::SteeringActual> status_writer =
+    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<dds::actuation::SteeringActual>>(
         participant,
         "Publisher::SteeringStatusTopicWriter");
 
     // Lookup the DataReader from the configuration
-    dds::sub::DataReader<SteeringCommand> command_reader =
-    rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringCommand>>(
+    dds::sub::DataReader<dds::actuation::SteeringDesired> command_reader =
+    rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringDesired>>(
         participant,
         "Subscriber::SteeringCommandTopicReader");
 

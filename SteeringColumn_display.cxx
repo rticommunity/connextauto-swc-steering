@@ -10,7 +10,6 @@
 * to use the software.
 */
 
-#include <algorithm>
 #include <iostream>
 
 #include <dds/sub/ddssub.hpp>
@@ -26,14 +25,14 @@
 // For information on how to use extensions, see:
 //    https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/api/connext_dds/api_cpp2/group__DDSCpp2Conventions.html
 
-#include "SteeringTypes.hpp"
+#include "Steering_t.hpp"
 #include "application.hpp"  // for command line parsing and ctrl-c
 
-int process_data(dds::sub::DataReader<SteeringStatus> reader)
+int process_data(dds::sub::DataReader< dds::actuation::SteeringActual> reader)
 {
     // Take all samples
     int count = 0;
-    dds::sub::LoanedSamples<SteeringStatus> samples = reader.take();
+    dds::sub::LoanedSamples< dds::actuation::SteeringActual> samples = reader.take();
     for (auto sample : samples) {
         if (sample.info().valid()) {
             count++;
@@ -52,7 +51,7 @@ void run_subscriber_application(unsigned int domain_id)
     // When using user-generated types, you must register the type with RTI
     // Connext DDS before creating the participants and the rest of the entities
     // in your system
-    rti::domain::register_type<SteeringStatus>("SteeringStatus");
+    rti::domain::register_type<dds::actuation::SteeringActual>("dds::actuation::SteeringActual");
 
     // Create the participant, changing the domain id from the one in the
     // configuration
@@ -66,8 +65,8 @@ void run_subscriber_application(unsigned int domain_id)
         params);
 
     // Lookup the DataReader from the configuration
-    dds::sub::DataReader<SteeringStatus> status_reader =
-        rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringStatus>>(
+    dds::sub::DataReader<dds::actuation::SteeringActual> status_reader =
+        rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringActual>>(
         participant,
         "Subscriber::SteeringStatusTopicReader");
 

@@ -27,7 +27,7 @@
 //    https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/api/connext_dds/api_cpp2/group__DDSCpp2Conventions.html
 
 #include "application.hpp"  // for command line parsing and ctrl-c
-#include "SteeringTypes.hpp"
+#include "Steering_t.hpp"
 
 void run_publisher_application(unsigned int domain_id, unsigned int strength)
 {
@@ -37,8 +37,8 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
     // When using user-generated types, you must register the type with RTI
     // Connext DDS before creating the participants and the rest of the entities
     // in your system
-    rti::domain::register_type<SteeringCommand>("SteeringCommand");
-    rti::domain::register_type<SteeringStatus>("SteeringStatus");
+    rti::domain::register_type<dds::actuation::SteeringDesired>("dds::actuation::SteeringDesired");
+    rti::domain::register_type<dds::actuation::SteeringActual>("dds::actuation::SteeringActual");
 
     // Create the participant, changing the domain id from the one in the
     // configuration
@@ -52,8 +52,8 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
         params);
 
     // Lookup the DataWriter from the configuration
-    dds::pub::DataWriter<SteeringCommand> command_writer =
-    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<SteeringCommand>>(
+    dds::pub::DataWriter<dds::actuation::SteeringDesired> command_writer =
+    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<dds::actuation::SteeringDesired>>(
         participant,
         "Publisher::SteeringCommandTopicWriter");
 
@@ -63,15 +63,15 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
     command_writer.qos(command_writer_qos);
 
     // Lookup the DataReader from the configuration
-    dds::sub::DataReader<SteeringStatus> status_reader =
-    rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringStatus>>(
+    dds::sub::DataReader<dds::actuation::SteeringActual> status_reader =
+    rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringActual>>(
         participant,
         "Subscriber::SteeringStatusTopicReader");
 
     // Enable the participant and underlying entities recursively
     participant.enable();
 
-    SteeringCommand data;
+    dds::actuation::SteeringDesired data;
     // Main loop, write data
     for (unsigned int samples_written = 0; !application::shutdown_requested; samples_written++) {
         // Modify the data to be written here

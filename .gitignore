@@ -3,6 +3,10 @@
 
 SteeringTypes*
 !SteeringTypes.idl
+
+Steering_t*
+makefile
+
 # Temporary build artifacts
 build*/
 .nvimlog

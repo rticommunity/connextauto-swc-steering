@@ -87,8 +87,13 @@ LIBS +=  -lnddscpp2$(SHAREDLIB_SFX)$(DEBUG_SFX) -lnddsc$(SHAREDLIB_SFX)$(DEBUG_S
         \
        $(STATIC_LIBRARIES) $(SYSLIBS)
 
-CDRSOURCES    = SteeringTypes.idl
-SOURCES = $(SOURCE_DIR)SteeringTypesPlugin.cxx $(SOURCE_DIR)SteeringTypes.cxx
+ifndef DATABUSHOME
+    DATABUSHOME := $(shell cd ../connextauto-bus/; pwd -P)
+endif
+
+STEERING_t     := Steering_t
+IDL_DIR        := $(DATABUSHOME)/res/types/data/actuation
+SOURCES = $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx
 COMMONSOURCES = $(notdir $(SOURCES))
 
 EXEC          = SteeringColumn_display SteeringColumn_controller SteeringColumn_actuator
@@ -103,7 +108,7 @@ $(TARGET_ARCH) : $(DIRECTORIES) $(COMMONOBJS) \
 objs/$(TARGET_ARCH)/% : objs/$(TARGET_ARCH)/%.o
 	$(LINKER) $(LINKER_FLAGS) -o $@ $@.o $(COMMONOBJS) $(LIBS)
 
-objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)SteeringTypes.hpp 
+objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)$(STEERING_t).hpp
 	$(COMPILER) $(COMPILER_FLAGS) -o $@ $(DEFINES) $(INCLUDES) -c $<
 
 #
@@ -111,10 +116,10 @@ objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)SteeringTypes.hpp
 # file is modified
 #
 #
-  $(SOURCE_DIR)SteeringTypesPlugin.cxx $(SOURCE_DIR)SteeringTypes.cxx \
-  $(SOURCE_DIR)SteeringTypes.hpp $(SOURCE_DIR)SteeringTypesPlugin.hpp $(SOURCE_DIR)application.hpp : \
-		$(SOURCE_DIR)SteeringTypes.idl
-	$(NDDSHOME)/bin/rtiddsgen $(SOURCE_DIR)SteeringTypes.idl -replace -language C++11
+  $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
+  $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp : \
+		$(IDL_DIR)/$(STEERING_t).idl
+	$(NDDSHOME)/bin/rtiddsgen $(IDL_DIR)/$(STEERING_t).idl -d . -replace -language C++11
 #
 # Here is how we create those subdirectories automatically.
 %.dir : 
@@ -124,3 +129,7 @@ objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)SteeringTypes.hpp
 		mkdir -p $* ; \
 	fi;
 
+clean:
+	rm -rf objs
+	rm $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
+	    $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp
