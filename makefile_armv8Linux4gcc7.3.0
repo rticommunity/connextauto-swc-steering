@@ -1,5 +1,5 @@
 ######################################################################
-# makefile_SteeringTypes_armv8Linux4gcc7.3.0#
+# makefile_armv8Linux4gcc7.3.0#
 # (c) Copyright, Real-Time Innovations, 2012.  All rights reserved.
 # RTI grants Licensee a license to use, modify, compile, and create
 # derivative works of the software solely for use with RTI Connext DDS.
@@ -126,6 +126,17 @@ objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)$(STEERING_t).hpp
 		mkdir -p $* ; \
 	fi;
 
+# Run the apps
+display: objs/$(TARGET_ARCH)/SteeringColumn_display
+	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_display
+
+controller: objs/$(TARGET_ARCH)/SteeringColumn_controller
+	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_controller
+
+actuator: objs/$(TARGET_ARCH)/SteeringColumn_actuator
+	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_actuator
+
+# Clean generated files and dirs
 clean:
 	rm -rf objs
 	rm $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \

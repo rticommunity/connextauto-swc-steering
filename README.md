@@ -6,12 +6,6 @@ Demonstrate Sterring Column control use case using RTI Connext DDS.
 
 ## Dependencies
 
-- Python
-
-  ```bash
-  sudo apt-get install python3-pil python3-pil.imagetk
-  ```
-
 - RTI Connext Professional 7.3 LTS (SDK)
 
 - [connextauto-bus](https://github.com/rticommunity/connextauto-bus) provides the common data model, data interfaces, common build system, and component
@@ -20,6 +14,12 @@ launcher for components in the connextauto ecosystem, and it is:
   - Located at the path specified by the environment variable `$DATABUSHOME`
   - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in the [`$DATABUSHOME/README.md`](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) to generate the datatypes for the *RTI Connext SDK*(s) used by this component
 
+
+- Python (OPTIONAL) for Visualization
+
+  ```bash
+  sudo apt-get install python3-pil python3-pil.imagetk
+  ```
 
 
 ## Getting Started
@@ -34,19 +34,28 @@ launcher for components in the connextauto ecosystem, and it is:
       make -f makefile_$RTI_ARCH
 
 - Run the applications using the launcher scripts
-
-      $DATABUSHOME/bin/run Steering ./objs/$RTI_ARCH/SteeringColumn_<app>
     
-  For documentation on the `$DATABUSHOME/bin/run` launcher utility, please refer to the documentation located at [`$DATABUSHOME/doc/Run.md`](https://github.com/rticommunity/connextauto-bus/blob/develop/doc/Run.md).
+      # Steering Display
+      make -f makefile_$RTI_ARCH display
 
+      # SteeringController
+      make -f makefile_$RTI_ARCH controller
 
-## Component Overview
+      # Steering Column
+      make -f makefile_$RTI_ARCH actuator
+
+## Overview
 
 The demo comprises of three applications exchanging data over the RTI Connext Databus, using DDS.
 
 - SteeringColumn
 - SteeringController
 - Ssteering Display
+
+To browse and the data architecture, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
+
+  -  Launch [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html)
+  - Open the [`$DATABUSHOME/connextauto.rtisdproj`](https://github.com/rticommunity/connextauto-bus/blob/master/connextauto_steering.rtisdproj) project
 
 
 ---

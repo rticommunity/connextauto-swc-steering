@@ -61,14 +61,14 @@ void run_subscriber_application(unsigned int domain_id)
     auto default_provider = dds::core::QosProvider::Default();
     dds::domain::DomainParticipant participant =
         default_provider->create_participant_from_config(
-        "SteeringColumnParticipantLibrary::Display",
+        "DriveParticipantLib::SteeringDisplay",
         params);
 
     // Lookup the DataReader from the configuration
     dds::sub::DataReader<dds::actuation::SteeringActual> status_reader =
         rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringActual>>(
         participant,
-        "Subscriber::SteeringStatusTopicReader");
+        "inputs::Steering_reader");
 
     // Create a ReadCondition for any data received on this reader and set a
     // handler to process the data

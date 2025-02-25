@@ -48,14 +48,14 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
     auto default_provider = dds::core::QosProvider::Default();
     dds::domain::DomainParticipant participant =
     default_provider->create_participant_from_config(
-        "SteeringColumnParticipantLibrary::Controller",
+        "DriveParticipantLib::SteeringController",
         params);
 
     // Lookup the DataWriter from the configuration
     dds::pub::DataWriter<dds::actuation::SteeringDesired> command_writer =
     rti::pub::find_datawriter_by_name<dds::pub::DataWriter<dds::actuation::SteeringDesired>>(
         participant,
-        "Publisher::SteeringCommandTopicWriter");
+        "outputs::Steering_writer");
 
     // Set strength of the DataWriter
     auto command_writer_qos = command_writer.qos();
@@ -66,7 +66,7 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
     dds::sub::DataReader<dds::actuation::SteeringActual> status_reader =
     rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringActual>>(
         participant,
-        "Subscriber::SteeringStatusTopicReader");
+        "inputs::Steering_reader");
 
     // Enable the participant and underlying entities recursively
     participant.enable();

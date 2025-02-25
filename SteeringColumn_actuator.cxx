@@ -110,20 +110,20 @@ void run_publisher_application(unsigned int domain_id)
     auto default_provider = dds::core::QosProvider::Default();
     dds::domain::DomainParticipant participant =
     default_provider->create_participant_from_config(
-        "SteeringColumnParticipantLibrary::SteeringColumn",
+        "DriveParticipantLib::SteeringColumn",
         params);
 
     // Lookup the DataWriter from the configuration
     dds::pub::DataWriter<dds::actuation::SteeringActual> status_writer =
     rti::pub::find_datawriter_by_name<dds::pub::DataWriter<dds::actuation::SteeringActual>>(
         participant,
-        "Publisher::SteeringStatusTopicWriter");
+        "outputs::Steering_writer");
 
     // Lookup the DataReader from the configuration
     dds::sub::DataReader<dds::actuation::SteeringDesired> command_reader =
     rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringDesired>>(
         participant,
-        "Subscriber::SteeringCommandTopicReader");
+        "inputs::Steering_reader");
 
     // Create a ReadCondition for any data received on this reader and set a
     // handler to process the data
