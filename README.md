@@ -42,6 +42,8 @@ launcher for components in the connextauto ecosystem, and it is:
       # SteeringController
       make -f makefile_$RTI_ARCH controller   # C++ app
       make -f makefile_$RTI_ARCH pycontroller # python GUI
+      make -f makefile_$RTI_ARCH STEERING_CONTROLLER_STRENGTH=10 controller   # C++ app
+      make -f makefile_$RTI_ARCH STEERING_CONTROLLER_STRENGTH=20 pycontroller # python GUI
 
       # Steering Column
       make -f makefile_$RTI_ARCH actuator     # C++ app
@@ -54,7 +56,7 @@ The demo comprises of three applications exchanging data over the RTI Connext Da
 - SteeringController
 - Ssteering Display
 
-To browse and the data architecture, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
+To browse and edit the data architecture, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
 
   -  Launch [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html)
   - Open the [`$DATABUSHOME/connextauto.rtisdproj`](https://github.com/rticommunity/connextauto-bus/blob/master/connextauto_steering.rtisdproj) project
