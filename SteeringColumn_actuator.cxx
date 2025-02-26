@@ -90,7 +90,7 @@ void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWr
     return;
 } // The LoanedSamples destructor returns the loan
 
-void run_publisher_application(unsigned int domain_id, unsigned int sample_count)
+void run_publisher_application(unsigned int domain_id)
 {
     // DDS objects behave like shared pointers or value types
     // (see https://community.rti.com/best-practices/use-modern-c-types-correctly)
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
-        run_publisher_application(arguments.domain_id, arguments.sample_count);
+        run_publisher_application(arguments.domain_id);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
         std::cerr << "Exception in run_publisher_application(): " << ex.what()

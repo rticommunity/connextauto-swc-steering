@@ -43,17 +43,17 @@ namespace application {
     struct ApplicationArguments {
         ParseReturn parse_result;
         unsigned int domain_id;
-        unsigned int sample_count;
+        unsigned int strength;
         rti::config::Verbosity verbosity;
 
         ApplicationArguments(
             ParseReturn parse_result_param,
             unsigned int domain_id_param,
-            unsigned int sample_count_param,
+            unsigned int strength_param,
             rti::config::Verbosity verbosity_param)
             : parse_result(parse_result_param),
             domain_id(domain_id_param),
-            sample_count(sample_count_param),
+            strength(strength_param),
             verbosity(verbosity_param) {}
     };
 
@@ -87,19 +87,19 @@ namespace application {
         bool show_usage = false;
         ParseReturn parse_result = ParseReturn::ok;
         unsigned int domain_id = 0;
-        unsigned int sample_count = (std::numeric_limits<unsigned int>::max)();
+        unsigned int strength = 0;
         rti::config::Verbosity verbosity(rti::config::Verbosity::EXCEPTION);
 
         while (arg_processing < argc) {
-            if ((argc > arg_processing + 1) 
+            if ((argc > arg_processing + 1)
             && (strcmp(argv[arg_processing], "-d") == 0
             || strcmp(argv[arg_processing], "--domain") == 0)) {
                 domain_id = atoi(argv[arg_processing + 1]);
                 arg_processing += 2;
             } else if ((argc > arg_processing + 1)
             && (strcmp(argv[arg_processing], "-s") == 0
-            || strcmp(argv[arg_processing], "--sample-count") == 0)) {
-                sample_count = atoi(argv[arg_processing + 1]);
+            || strcmp(argv[arg_processing], "--strength") == 0)) {
+                strength = atoi(argv[arg_processing + 1]);
                 arg_processing += 2;
             } else if ((argc > arg_processing + 1)
             && (strcmp(argv[arg_processing], "-v") == 0
@@ -124,16 +124,15 @@ namespace application {
             "    -d, --domain       <int>   Domain ID this application will\n" \
             "                               subscribe in.  \n"
             "                               Default: 0\n"\
-            "    -s, --sample_count <int>   Number of samples to receive before\n"\
-            "                               cleanly shutting down. \n"
-            "                               Default: infinite\n"
+            "    -s, --strength     <int>   Strength of a controller.\n"
+            "                               Default: 0\n"
             "    -v, --verbosity    <int>   How much debugging output to show.\n"\
             "                               Range: 0-3 \n"
             "                               Default: 1"
             << std::endl;
         }
 
-        return ApplicationArguments(parse_result, domain_id, sample_count, verbosity);
+        return ApplicationArguments(parse_result, domain_id, strength, verbosity);
     }
 
 }  // namespace application

@@ -1,5 +1,6 @@
 import tkinter as tk
 import rti.connextdds as dds
+import argparse
 
 # Define the SteeringCommand type as a DynamicData type
 steering_command_type = dds.StructType(
@@ -18,6 +19,11 @@ def update_value(val):
     label.config(text=f"Value: {value}")
     command_writer.write(steering_command_data)
 
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Steering Column Controller")
+parser.add_argument("--strength", default=0, help="Strength of the steering command DataWriter")
+args = parser.parse_args()
+
 # Load the QoS provider with the XML configuration
 qos_provider = dds.QosProvider.default
 
@@ -30,6 +36,11 @@ participant = qos_provider.create_participant_from_config(
 command_writer = dds.DynamicData.DataWriter(
     participant.find_datawriter("Publisher::SteeringCommandTopicWriter")
 )
+
+# Set DataWriter Strength
+command_writer_qos = command_writer.qos
+command_writer_qos.ownership_strength.value = int(args.strength)
+command_writer.qos = command_writer_qos
 
 # Enable the participant and its underlying entities
 participant.enable()

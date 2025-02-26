@@ -29,11 +29,11 @@
 #include "SteeringTypes.hpp"
 #include "application.hpp"  // for command line parsing and ctrl-c
 
-int process_data(dds::sub::DataReader< SteeringStatus> reader)
+int process_data(dds::sub::DataReader<SteeringStatus> reader)
 {
     // Take all samples
     int count = 0;
-    dds::sub::LoanedSamples< SteeringStatus> samples = reader.take();
+    dds::sub::LoanedSamples<SteeringStatus> samples = reader.take();
     for (auto sample : samples) {
         if (sample.info().valid()) {
             count++;
@@ -41,10 +41,10 @@ int process_data(dds::sub::DataReader< SteeringStatus> reader)
         }
     }
 
-    return count; 
+    return count;
 } // The LoanedSamples destructor returns the loan
 
-void run_subscriber_application(unsigned int domain_id, unsigned int sample_count)
+void run_subscriber_application(unsigned int domain_id)
 {
     // DDS objects behave like shared pointers or value types
     // (see https://community.rti.com/best-practices/use-modern-c-types-correctly)
@@ -66,7 +66,7 @@ void run_subscriber_application(unsigned int domain_id, unsigned int sample_coun
         params);
 
     // Lookup the DataReader from the configuration
-    dds::sub::DataReader<SteeringStatus> reader =
+    dds::sub::DataReader<SteeringStatus> status_reader =
         rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringStatus>>(
         participant,
         "Subscriber::SteeringStatusTopicReader");
@@ -75,9 +75,9 @@ void run_subscriber_application(unsigned int domain_id, unsigned int sample_coun
     // handler to process the data
     unsigned int samples_read = 0;
     dds::sub::cond::ReadCondition read_condition(
-        reader,
+        status_reader,
         dds::sub::status::DataState::any(),
-        [reader, &samples_read]() { samples_read += process_data(reader); });
+        [status_reader, &samples_read]() { samples_read += process_data(status_reader); });
 
     // WaitSet will be woken when the attached condition is triggered
     dds::core::cond::WaitSet waitset;
@@ -87,7 +87,7 @@ void run_subscriber_application(unsigned int domain_id, unsigned int sample_coun
     participant.enable();
 
     std::cout << "Display starting..." << std::endl;
-    while (!application::shutdown_requested && samples_read < sample_count) {
+    while (!application::shutdown_requested) {
         // Run the handlers of the active conditions. Wait for up to 1 second.
         waitset.dispatch(dds::core::Duration(1));
     }
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
-        run_subscriber_application(arguments.domain_id, arguments.sample_count);
+        run_subscriber_application(arguments.domain_id);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
         std::cerr << "Exception in run_subscriber_application(): " << ex.what()

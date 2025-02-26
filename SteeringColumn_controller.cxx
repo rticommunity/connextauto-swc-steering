@@ -29,7 +29,7 @@
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "SteeringTypes.hpp"
 
-void run_publisher_application(unsigned int domain_id, unsigned int sample_count)
+void run_publisher_application(unsigned int domain_id, unsigned int strength)
 {
     // DDS objects behave like shared pointers or value types
     // (see https://community.rti.com/best-practices/use-modern-c-types-correctly)
@@ -57,6 +57,11 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
         participant,
         "Publisher::SteeringCommandTopicWriter");
 
+    // Set strength of the DataWriter
+    auto command_writer_qos = command_writer.qos();
+    command_writer_qos << dds::core::policy::OwnershipStrength(strength);
+    command_writer.qos(command_writer_qos);
+
     // Lookup the DataReader from the configuration
     dds::sub::DataReader<SteeringStatus> status_reader =
     rti::sub::find_datareader_by_name<dds::sub::DataReader<SteeringStatus>>(
@@ -68,9 +73,7 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
 
     SteeringCommand data;
     // Main loop, write data
-    for (unsigned int samples_written = 0;
-    !application::shutdown_requested && samples_written < sample_count;
-    samples_written++) {
+    for (unsigned int samples_written = 0; !application::shutdown_requested; samples_written++) {
         // Modify the data to be written here
         data.position(samples_written % 360);
         std::cout << "Writing Steering Position: " << data.position() << std::endl;
@@ -99,7 +102,7 @@ int main(int argc, char *argv[])
     rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
-        run_publisher_application(arguments.domain_id, arguments.sample_count);
+        run_publisher_application(arguments.domain_id, arguments.strength);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
         std::cerr << "Exception in run_publisher_application(): " << ex.what()
