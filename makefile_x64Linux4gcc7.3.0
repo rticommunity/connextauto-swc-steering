@@ -130,13 +130,13 @@ objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)$(STEERING_t).hpp
 	fi;
 
 # Run the apps
-display: objs/$(TARGET_ARCH)/SteeringColumn_display
+display: # objs/$(TARGET_ARCH)/SteeringColumn_display
 	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_display
 
-controller: objs/$(TARGET_ARCH)/SteeringColumn_controller
+controller: # objs/$(TARGET_ARCH)/SteeringColumn_controller
 	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_controller
 
-actuator: objs/$(TARGET_ARCH)/SteeringColumn_actuator
+actuator: # objs/$(TARGET_ARCH)/SteeringColumn_actuator
 	$(DATABUSHOME)/bin/run Steering ./objs/$(TARGET_ARCH)/SteeringColumn_actuator
 
 pydisplay:
