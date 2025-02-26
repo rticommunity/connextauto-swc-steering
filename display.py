@@ -14,8 +14,6 @@ def start_rotation_loop():
     for data, info in reader.take():
         if info.valid:
             display_image(data['position'])
-        else:
-            print("Received metadata")
     root.after(100, start_rotation_loop)  # Update every 100 milliseconds
 
 def display_image(angle):
@@ -29,7 +27,7 @@ qos_provider = dds.QosProvider.default
 
 # Create a DomainParticipant using the specified QoS profile
 participant = qos_provider.create_participant_from_config(
-    "SteeringColumnParticipantLibrary::PythonDisplay"
+    "SteeringColumnParticipantLibrary::Display"
 )
 
 # Get the DataReader
