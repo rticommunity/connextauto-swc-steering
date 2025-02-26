@@ -29,6 +29,54 @@
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "SteeringTypes.hpp"
 
+// Listener that will be notified of DataReader events
+class SteeringCommandDataReaderListener : public dds::sub::NoOpDataReaderListener<SteeringCommand> {
+    public:
+    // Notifications about data
+    void on_requested_deadline_missed(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::RequestedDeadlineMissedStatus& status)
+        override
+    {
+        std::cout << "Requested deadline missed from controller: " << status.last_instance_handle() << std::endl;
+    }
+    void on_sample_rejected(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::SampleRejectedStatus& status) override
+    {
+    }
+    void on_sample_lost(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::SampleLostStatus& status) override
+    {
+    }
+    // Notifications about DataWriters
+    void on_requested_incompatible_qos(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::RequestedIncompatibleQosStatus& status)
+        override
+    {
+    }
+    void on_subscription_matched(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::SubscriptionMatchedStatus& status) override
+    {
+        if(status.current_count_change() > 0) {
+            std::cout << "Matched controller: " << status.last_publication_handle() << std::endl;
+        } else {
+            std::cout << "Unmatched controller: " << status.last_publication_handle() << std::endl;
+        }
+    }
+    void on_liveliness_changed(
+        dds::sub::DataReader<SteeringCommand>& reader,
+        const dds::core::status::LivelinessChangedStatus& status) override
+    {
+        if(status.not_alive_count_change() > 0) {
+            std::cout << "Liveliness lost from controller: " << status.last_publication_handle() << std::endl;
+        }
+    }
+};
+
 void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWriter<SteeringStatus> writer)
 {
     // Take all samples
@@ -86,6 +134,17 @@ void run_publisher_application(unsigned int domain_id, unsigned int sample_count
     // WaitSet will be woken when the attached condition is triggered
     dds::core::cond::WaitSet waitset;
     waitset += read_condition;
+
+    // Notify of all statuses in the listener except for new data, which we handle
+    // in this thread with a WaitSet.
+    auto status_mask = dds::core::status::StatusMask::all()
+    & ~dds::core::status::StatusMask::data_available();
+
+    // Create a DataReader, loading QoS profile from USER_QOS_PROFILES.xml, and
+    // using a listener for events.
+    auto listener = std::make_shared<SteeringCommandDataReaderListener>();
+
+    command_reader.set_listener(listener, status_mask);
 
     // Enable the participant and underlying entities recursively
     participant.enable();
