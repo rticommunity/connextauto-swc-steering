@@ -33,7 +33,7 @@ launcher for components in the connextauto ecosystem, and it is:
       export RTI_ARCH=x64Linux4gcc7.3.0
       make -f makefile_$RTI_ARCH
 
-- Run the applications using the launcher scripts
+- Run the applications locally
     
       # Steering Display
       make -f makefile_$RTI_ARCH display      # C++ app
@@ -47,6 +47,37 @@ launcher for components in the connextauto ecosystem, and it is:
 
       # Steering Column
       make -f makefile_$RTI_ARCH actuator     # C++ app
+
+
+## Running on a remote target (eg Raspberry Pi)
+
+- On Local Terminal: Package apps and config files
+
+        make <arch>.package
+    e.g.
+
+          make armv8Linux4gcc7.3.0.package
+          make x64Linux4gcc7.3.0.package
+
+    This step creates a package `../steering_<arch>.tgz`
+
+- Transfer the package to the remote host, e.g.:
+
+      scp ../steering_<arch>.tgz user@server:/remote/path/
+
+- On Remote Terminal: Unpack the apps and config files
+
+      cd /remote/path
+      tar zxvf steering_<arch>.tgz
+      cd connextauto-swc-steering
+
+      ln -s makefile_<arch> makefile
+
+- On Remote Terminal, run apps
+
+      make actuator
+      make controller
+      make display
 
 ## Overview
 
