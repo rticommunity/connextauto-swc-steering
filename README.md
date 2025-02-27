@@ -2,14 +2,14 @@
 
 ## Introduction
 
-Demonstrate Sterring Column control use case using RTI Connext DDS.
+Demonstrate Sterring Column control using RTI Connext DDS.
 
 ## Dependencies
 
 - RTI Connext Professional 7.3 LTS (SDK)
 
-- [connextauto-bus](https://github.com/rticommunity/connextauto-bus) provides the common data model, data interfaces, common build system, and component
-launcher for components in the connextauto ecosystem, and it is:
+- [connextauto-bus](https://github.com/rticommunity/connextauto-bus) provides the common data model, data interfaces, a component
+launcher, and an *optional* build system. It is:
 
   - Located at the path specified by the environment variable `$DATABUSHOME`
   - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in the [`$DATABUSHOME/README.md`](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) to generate the datatypes for the *RTI Connext SDK*(s) used by this component
@@ -24,9 +24,11 @@ launcher for components in the connextauto ecosystem, and it is:
 
 ## Getting Started
 
-- Clone (or fork and clone) this repo
+- Clone (or fork and clone) this repo into the folder `connextauto`, that contains [connextauto-bus](https://github.com/rticommunity/connextauto-bus) (see [Dependencies](#dependencies))
 
-      git clone <a_git_url_to_this_repository>
+      cd /path/to/connextauto/
+
+      git clone <git_url_to_this_repository>
 
 - Build for the target architecture <arch>
 
@@ -46,7 +48,7 @@ launcher for components in the connextauto ecosystem, and it is:
 ## Run the applications
 
 
-   The platform independent makefile provides a launcher to run the apps.
+   The platform independent `makefile` provides a launcher to run the apps.
    The generic pattern for launching the apps is as follows.
 
       make <arch>/<app>
@@ -56,20 +58,21 @@ launcher for components in the connextauto ecosystem, and it is:
 
       make x64Linux4gcc7.3.0/display
       make x64Linux4gcc7.3.0/controller
-      make x64Linux4gcc7.3.0/controller
+      make x64Linux4gcc7.3.0/actuator
 
    `<arch>` = armv8Linux4gcc7.3.0
 
       make armv8Linux4gcc7.3.0/display
-      make armv8Linux4gcc7.3.0/actuator
       make armv8Linux4gcc7.3.0/controller
+      make armv8Linux4gcc7.3.0/actuator
 
    `<arch>` = Python
 
       make py/display
       make py/controller
 
-   You can pass enviornment variables using as follows. Below is an example that sets the environment variable `STEERING_CONTROLLER_STRENGTH` to 20
+   You can pass enviornment variables to `make` as follows.
+   The example below sets the environment variable `STEERING_CONTROLLER_STRENGTH` to 20
 
       make STEERING_CONTROLLER_STRENGTH=20 x64Linux4gcc7.3.0/controller
 
@@ -92,7 +95,7 @@ launcher for components in the connextauto ecosystem, and it is:
 
 - Transfer the package to the remote host, e.g.:
 
-      scp ../steering_<arch>.tgz user@server:/remote/path/
+      scp steering_<arch>.tgz user@server:/remote/path/
 
 - On Remote Terminal: Unpack the apps and config files
 
@@ -100,7 +103,7 @@ launcher for components in the connextauto ecosystem, and it is:
       tar zxvf steering_<arch>.tgz
       cd connextauto-swc-steering
 
-- On Remote Terminal, [run apps as before for the target arch](#run-the-applications)
+- On Remote Terminal, [run apps as before for the target architecture](#run-the-applications)
 
 ## Overview
 
