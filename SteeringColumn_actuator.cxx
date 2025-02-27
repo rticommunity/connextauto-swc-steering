@@ -11,6 +11,7 @@
 */
 
 #include <iostream>
+#include <iomanip>  // For std::setw
 
 #include <dds/pub/ddspub.hpp>
 #include <dds/sub/ddssub.hpp>
@@ -29,53 +30,7 @@
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "SteeringTypes.hpp"
 
-// Listener that will be notified of DataReader events
-class SteeringCommandDataReaderListener : public dds::sub::NoOpDataReaderListener<SteeringCommand> {
-    public:
-    // Notifications about data
-    void on_requested_deadline_missed(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::RequestedDeadlineMissedStatus& status)
-        override
-    {
-        std::cout << "Requested deadline missed from controller: " << status.last_instance_handle() << std::endl;
-    }
-    void on_sample_rejected(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::SampleRejectedStatus& status) override
-    {
-    }
-    void on_sample_lost(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::SampleLostStatus& status) override
-    {
-    }
-    // Notifications about DataWriters
-    void on_requested_incompatible_qos(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::RequestedIncompatibleQosStatus& status)
-        override
-    {
-    }
-    void on_subscription_matched(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::SubscriptionMatchedStatus& status) override
-    {
-        if(status.current_count_change() > 0) {
-            std::cout << "Matched controller: " << status.last_publication_handle() << std::endl;
-        } else {
-            std::cout << "Unmatched controller: " << status.last_publication_handle() << std::endl;
-        }
-    }
-    void on_liveliness_changed(
-        dds::sub::DataReader<SteeringCommand>& reader,
-        const dds::core::status::LivelinessChangedStatus& status) override
-    {
-        if(status.not_alive_count_change() > 0) {
-            std::cout << "Liveliness lost from controller: " << status.last_publication_handle() << std::endl;
-        }
-    }
-};
+#define OUTPUT_WIDTH 33
 
 void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWriter<SteeringStatus> writer)
 {
@@ -89,6 +44,53 @@ void process_data(dds::sub::DataReader<SteeringCommand> reader, dds::pub::DataWr
 
     return;
 } // The LoanedSamples destructor returns the loan
+
+void handle_status(dds::sub::DataReader<SteeringCommand> reader,
+                   dds::pub::DataWriter<SteeringStatus> writer)
+{
+    bool safety_position(false);
+
+    dds::core::status::StatusMask status_mask = reader.status_changes();
+
+    // Check for liveliness status
+    if ((status_mask & dds::core::status::StatusMask::liveliness_changed()).any()) {
+        auto liveliness_status = reader.liveliness_changed_status();
+        if (liveliness_status.not_alive_count_change() > 0) {
+            std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
+                      << "Liveliness lost from controller:" << liveliness_status.last_publication_handle() << std::endl;
+        }
+        if (liveliness_status.alive_count() == 0) {
+            safety_position = true;
+        }
+        return;
+    }
+
+    // Check for subscription matched status
+    if((status_mask & dds::core::status::StatusMask::subscription_matched()).any()) {
+        auto subscription_status = reader.subscription_matched_status();
+        if (subscription_status.current_count_change() > 0) {
+            std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
+                      << "Matched controller:" << subscription_status.last_publication_handle() << std::endl;
+        } else {
+            std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
+                      << "Unmatched controller:" << subscription_status.last_publication_handle() << std::endl;
+        }
+        if( subscription_status.current_count() == 0) {
+            safety_position = true;
+        }
+    }
+
+    // Check for deadline status
+    if((status_mask & dds::core::status::StatusMask::requested_deadline_missed()).any()) {
+        auto deadline_status = reader.requested_deadline_missed_status();
+        std::cout << "Deadline missed from controller." << std::endl;
+    }
+
+    if(safety_position) {
+        writer.write(SteeringStatus(0));
+        std::cout << "Writing Steering Position: 0" << std::endl;
+    }
+}
 
 void run_publisher_application(unsigned int domain_id)
 {
@@ -131,20 +133,22 @@ void run_publisher_application(unsigned int domain_id)
         dds::sub::status::DataState::any(),
         [command_reader, status_writer]() { process_data(command_reader, status_writer); });
 
+    // Enable the statuses to monitor
+    dds::core::cond::StatusCondition status_condition(command_reader);
+    status_condition.enabled_statuses(
+        dds::core::status::StatusMask::subscription_matched() |
+        dds::core::status::StatusMask::requested_deadline_missed() |
+        dds::core::status::StatusMask::liveliness_changed());
+
+    // Set a handler for the StatusCondition
+    status_condition.extensions().handler([command_reader, status_writer]() {
+        handle_status(command_reader, status_writer);
+    });
+
     // WaitSet will be woken when the attached condition is triggered
     dds::core::cond::WaitSet waitset;
     waitset += read_condition;
-
-    // Notify of all statuses in the listener except for new data, which we handle
-    // in this thread with a WaitSet.
-    auto status_mask = dds::core::status::StatusMask::all()
-    & ~dds::core::status::StatusMask::data_available();
-
-    // Create a DataReader, loading QoS profile from USER_QOS_PROFILES.xml, and
-    // using a listener for events.
-    auto listener = std::make_shared<SteeringCommandDataReaderListener>();
-
-    command_reader.set_listener(listener, status_mask);
+    waitset += status_condition;
 
     // Enable the participant and underlying entities recursively
     participant.enable();
