@@ -5,7 +5,7 @@ SteeringTypes*
 !SteeringTypes.idl
 
 Steering_t*
-makefile
+steering_*.tgz
 
 # Temporary build artifacts
 build*/

@@ -28,38 +28,67 @@ launcher for components in the connextauto ecosystem, and it is:
 
       git clone <a_git_url_to_this_repository>
 
-- Build for the target $RTI_ARCH
+- Build for the target architecture <arch>
 
-      export RTI_ARCH=x64Linux4gcc7.3.0
-      make -f makefile_$RTI_ARCH
+      make -f makefile_<arch>
 
-- Run the applications locally
-    
-      # Steering Display
-      make -f makefile_$RTI_ARCH display      # C++ app
-      make -f makefile_$RTI_ARCH pydisplay    # python GUI
+  e.g.:
 
-      # SteeringController
-      make -f makefile_$RTI_ARCH controller   # C++ app
-      make -f makefile_$RTI_ARCH pycontroller # python GUI
-      make -f makefile_$RTI_ARCH STEERING_CONTROLLER_STRENGTH=10 controller   # C++ app
-      make -f makefile_$RTI_ARCH STEERING_CONTROLLER_STRENGTH=20 pycontroller # python GUI
+  `<arch>` = x64Linux4gcc7.3.0
 
-      # Steering Column
-      make -f makefile_$RTI_ARCH actuator     # C++ app
+      make -f makefile_x64Linux4gcc7.3.0
+
+   `<arch>` = armv8Linux4gcc7.3.0
+
+        make -f makefile_armv8Linux4gcc7.3.0
+
+
+## Run the applications
+
+
+   The platform independent makefile provides a launcher to run the apps.
+   The generic pattern for launching the apps is as follows.
+
+      make <arch>/<app>
+
+  e.g.
+   `<arch>` = x64Linux4gcc7.3.0
+
+      make x64Linux4gcc7.3.0/display
+      make x64Linux4gcc7.3.0/controller
+      make x64Linux4gcc7.3.0/controller
+
+   `<arch>` = armv8Linux4gcc7.3.0
+
+      make armv8Linux4gcc7.3.0/display
+      make armv8Linux4gcc7.3.0/actuator
+      make armv8Linux4gcc7.3.0/controller
+
+   `<arch>` = Python
+
+      make py/display
+      make py/controller
+
+   You can pass enviornment variables using as follows. Below is an example that sets the environment variable `STEERING_CONTROLLER_STRENGTH` to 20
+
+      make STEERING_CONTROLLER_STRENGTH=20 x64Linux4gcc7.3.0/controller
+
+      make STEERING_CONTROLLER_STRENGTH=20 armv8Linux4gcc7.3.0/controller
+
+      make STEERING_CONTROLLER_STRENGTH=20 py/controller
 
 
 ## Running on a remote target (eg Raspberry Pi)
 
 - On Local Terminal: Package apps and config files
 
-        make <arch>.package
+        make <arch>/package
     e.g.
 
-          make armv8Linux4gcc7.3.0.package
-          make x64Linux4gcc7.3.0.package
+          make armv8Linux4gcc7.3.0/package
+          make x64Linux4gcc7.3.0/package
 
-    This step creates a package `../steering_<arch>.tgz`
+    This step creates a package `./steering_<arch>.tgz`
 
 - Transfer the package to the remote host, e.g.:
 
@@ -71,13 +100,7 @@ launcher for components in the connextauto ecosystem, and it is:
       tar zxvf steering_<arch>.tgz
       cd connextauto-swc-steering
 
-      ln -s makefile_<arch> makefile
-
-- On Remote Terminal, run apps
-
-      make actuator
-      make controller
-      make display
+- On Remote Terminal, [run apps as before for the target arch](#run-the-applications)
 
 ## Overview
 
