@@ -15,12 +15,27 @@ launcher, and an *optional* build system. It is:
   - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in the [`$DATABUSHOME/README.md`](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) to generate the datatypes for the *RTI Connext SDK*(s) used by this component
 
 
-- Python (OPTIONAL) for Visualization
+- Python for Visualization (OPTIONAL)
+   - Install packages
+     - Linux (Ubuntu)
 
-  ```bash
-  sudo apt-get install python3-pil python3-pil.imagetk
-  ```
+           apt-get install python3-pil python3-pil.imagetk
 
+      - macOS
+
+            brew install python@3.12 pillow python-tk@3.12
+
+  - Create and activate venv
+
+         python3.12 -m venv .venv
+         . .venv/bin/activate
+
+  - Install python libraries in the venv
+
+         pip install pillow
+
+         # rti.connext (see RTI Connext Getting Started)
+         pip install rti.connext.activated -f $NDDSHOME/resource/python_api
 
 ## Getting Started
 
