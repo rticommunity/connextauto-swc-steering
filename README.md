@@ -19,7 +19,7 @@ launcher, and an *optional* build system. It is:
    - Install packages
      - Linux (Ubuntu)
 
-           apt-get install python3-pil python3-pil.imagetk
+           apt install python3-pip python3-pil python3-pil.imagetk
 
       - macOS
 
