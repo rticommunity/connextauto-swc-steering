@@ -35,10 +35,12 @@
 void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, dds::pub::DataWriter<dds::actuation::SteeringActual> writer)
 {
     // Take all samples
-    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.take();
+    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.read();
     for (auto sample : samples) {
         if (sample.info().valid()) {
-            writer.write(dds::actuation::SteeringActual(sample.data().position()));
+            if (sample.info().state().sample_state() == dds::sub::status::SampleState::not_read()) {
+                writer.write(dds::actuation::SteeringActual(sample.data().position()));
+            }
         }
     }
 
