@@ -56,12 +56,11 @@ void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader,
         auto liveliness_status = reader.liveliness_changed_status();
         if (liveliness_status.not_alive_count_change() > 0) {
             std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
-                      << "Liveliness lost from controller:" << liveliness_status.last_publication_handle() << std::endl;
+                      << "Liveliness changed for controller:" << liveliness_status.last_publication_handle() << std::endl;
         }
         if (liveliness_status.alive_count() == 0) {
             safety_position = true;
         }
-        return;
     }
 
     // Check for subscription matched status

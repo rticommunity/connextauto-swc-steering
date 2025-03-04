@@ -70,8 +70,10 @@ clean:
 py/display:
 	$(DATABUSHOME)/bin/run Steering ./display.py
 
+STEERING_CONTROLLER_STRENGTH ?= 5
+
 py/controller:
-	$(DATABUSHOME)/bin/run Steering ./controller.py
+	$(DATABUSHOME)/bin/run Steering ./controller.py --strength $(STEERING_CONTROLLER_STRENGTH)
 
 %/display:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
