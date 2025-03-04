@@ -30,7 +30,7 @@
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "Steering_t.hpp"
 
-#define OUTPUT_WIDTH 33
+#define OUTPUT_WIDTH 35
 
 void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, dds::pub::DataWriter<dds::actuation::SteeringActual> writer)
 {

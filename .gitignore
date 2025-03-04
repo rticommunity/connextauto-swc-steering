@@ -1,6 +1,6 @@
 **/objs/*
 **/build/*
-.venv
+.venv*
 
 SteeringTypes*
 !SteeringTypes.idl
