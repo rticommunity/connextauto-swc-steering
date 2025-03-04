@@ -50,7 +50,7 @@ print("DomainParticipant and entities created and enabled successfully.")
 
 # Create the main window
 root = tk.Tk()
-root.title("Slider Control")
+root.title(f"Slider Control : Strength = {command_writer.qos.ownership_strength.value}")
 
 # Set the size of the window
 root.geometry("600x150")

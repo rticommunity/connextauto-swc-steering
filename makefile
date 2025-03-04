@@ -70,16 +70,17 @@ clean:
 py/display:
 	$(DATABUSHOME)/bin/run Steering ./display.py
 
-STEERING_CONTROLLER_STRENGTH ?= 5
-
+STEERING_CONTROLLER_STRENGTH ?= 2
 py/controller:
-	$(DATABUSHOME)/bin/run Steering ./controller.py --strength $(STEERING_CONTROLLER_STRENGTH)
+	$(DATABUSHOME)/bin/run Steering ./controller.py \
+		--strength $(STEERING_CONTROLLER_STRENGTH)
 
 %/display:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
 
 %/controller:
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
+		--strength $(STEERING_CONTROLLER_STRENGTH)
 
 %/actuator:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
