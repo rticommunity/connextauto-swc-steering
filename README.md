@@ -6,12 +6,15 @@ Demonstrate Sterring Column control using RTI Connext DDS.
 
 ## Dependencies
 
-- RTI Connext Professional 7.3 LTS (SDK)
+- RTI Connext Professional 7.3 LTS (SDK) for DDS
 
-- [connextauto-bus](https://github.com/rticommunity/connextauto-bus)
-  - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in the [`$DATABUSHOME/README.md`](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) to generate the datatypes for the *RTI Connext SDK*(s) used by this component
-  - `$DATABUSHOME` refers to the location of this repo: /path/to/**connextauto**/connextauto-bus
+- [connextauto-bus](https://github.com/rticommunity/connextauto-bus) for common data architecture
+  - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in [connextauto-bus](https://github.com/rticommunity/connextauto-bus) repo
+  - At this point, the directory structure should look like this:
 
+        /path/to/connextauto/
+            ├── connextauto-bus
+   - `$DATABUSHOME` refers to `/path/to/connextauto/connextauto-bus`
 
 - Python for Visualization (OPTIONAL)
    - Install packages
@@ -37,18 +40,28 @@ Demonstrate Sterring Column control using RTI Connext DDS.
 
 ## Getting Started
 
-- Clone (or fork and clone) this repo into the folder **`connextauto/`** (see [Dependencies](#dependencies))
+- Clone (or fork and clone) this repo into the `connextauto/` directory (see [Dependencies](#dependencies))
 
       cd /path/to/connextauto/
 
       git clone <git_url_to_this_repository>
+
+   The directory structure should look like this:
+
+      /path/to/connextauto/
+            ├── connextauto-bus
+            ├── connextauto-swc-steering
+
+- Change to the software component (swc) directory:
+
+      cd connextauto-swc-steering/
 
 - Build for the target architecture <arch>
 
       make -f makefile_<arch>
 
   e.g.:
--
+
   `<arch>` = x64Linux4gcc7.3.0
 
       make -f makefile_x64Linux4gcc7.3.0
@@ -127,11 +140,11 @@ The components are decribed below.
 
 - **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status
 - **SteeringController** writes steering commands
-- **SteeringDisplay** reads and displays steering status
+- **SteeringDisplay** takes and displays steering status
 
 The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components have two implementaion variants: one in C++ with a textual user interface, and another in Python with a GUI.
 
-To browse and edit the data architecture, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
+To browse the data architecture, including QoS, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
 
   -  Launch [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html)
   - Open the [`$DATABUSHOME/connextauto.rtisdproj`](https://github.com/rticommunity/connextauto-bus/blob/master/connextauto_steering.rtisdproj) project
