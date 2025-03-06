@@ -8,11 +8,9 @@ Demonstrate Sterring Column control using RTI Connext DDS.
 
 - RTI Connext Professional 7.3 LTS (SDK)
 
-- [connextauto-bus](https://github.com/rticommunity/connextauto-bus) provides the common data model, data interfaces, a component
-launcher, and an *optional* build system. It is:
-
-  - Located at the path specified by the environment variable `$DATABUSHOME`
+- [connextauto-bus](https://github.com/rticommunity/connextauto-bus)
   - **(if not done already)** Follow the [Getting Started](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) instructions in the [`$DATABUSHOME/README.md`](https://github.com/rticommunity/connextauto-bus?tab=readme-ov-file#getting-started) to generate the datatypes for the *RTI Connext SDK*(s) used by this component
+  - `$DATABUSHOME` refers to the location of this repo: /path/to/**connextauto**/connextauto-bus
 
 
 - Python for Visualization (OPTIONAL)
@@ -39,7 +37,7 @@ launcher, and an *optional* build system. It is:
 
 ## Getting Started
 
-- Clone (or fork and clone) this repo into the folder `connextauto`, that contains [connextauto-bus](https://github.com/rticommunity/connextauto-bus) (see [Dependencies](#dependencies))
+- Clone (or fork and clone) this repo into the folder **`connextauto/`** (see [Dependencies](#dependencies))
 
       cd /path/to/connextauto/
 
@@ -50,7 +48,7 @@ launcher, and an *optional* build system. It is:
       make -f makefile_<arch>
 
   e.g.:
-
+-
   `<arch>` = x64Linux4gcc7.3.0
 
       make -f makefile_x64Linux4gcc7.3.0
@@ -122,11 +120,16 @@ launcher, and an *optional* build system. It is:
 
 ## Overview
 
-The demo comprises of three applications exchanging data over the RTI Connext Databus, using DDS.
+The demo comprises of three applications exchanging data over the RTI Connext Databus, using DDS. They use the datatypes defined in the files below.
+- [$DATABUSHOME/res/types/data/actuation/Steering_t.idl](https://github.com/rticommunity/connextauto-bus/blob/master/res/types/data/actuation/Steering_t.idl)
 
-- SteeringColumn
-- SteeringController
-- Ssteering Display
+The components are decribed below.
+
+- **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status
+- **SteeringController** writes steering commands
+- **SteeringDisplay** reads and displays steering status
+
+The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components have two implementaion variants: one in C++ with a textual user interface, and another in Python with a GUI.
 
 To browse and edit the data architecture, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
 
