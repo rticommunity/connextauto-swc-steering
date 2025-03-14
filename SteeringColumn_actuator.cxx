@@ -111,7 +111,7 @@ void run_publisher_application(unsigned int domain_id)
     auto default_provider = dds::core::QosProvider::Default();
     dds::domain::DomainParticipant participant =
     default_provider->create_participant_from_config(
-        "DriveParticipantLib::SteeringColumn",
+        "SteeringParticipantLib::SteeringColumn",
         params);
 
     // Lookup the DataWriter from the configuration

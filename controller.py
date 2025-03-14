@@ -30,7 +30,7 @@ qos_provider = dds.QosProvider.default
 
 # Create a DomainParticipant from the configuration
 participant = qos_provider.create_participant_from_config(
-    "DriveParticipantLib::SteeringController"
+    "SteeringParticipantLib::SteeringController"
 )
 
 # Lookup the DataWriter from the configuration

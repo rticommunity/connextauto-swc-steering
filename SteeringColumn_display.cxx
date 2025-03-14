@@ -61,7 +61,7 @@ void run_subscriber_application(unsigned int domain_id)
     auto default_provider = dds::core::QosProvider::Default();
     dds::domain::DomainParticipant participant =
         default_provider->create_participant_from_config(
-        "DriveParticipantLib::SteeringDisplay",
+        "SteeringParticipantLib::SteeringDisplay",
         params);
 
     // Lookup the DataReader from the configuration

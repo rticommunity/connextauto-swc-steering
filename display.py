@@ -30,7 +30,7 @@ qos_provider = dds.QosProvider.default
 
 # Create a DomainParticipant using the specified QoS profile
 participant = qos_provider.create_participant_from_config(
-    "DriveParticipantLib::SteeringDisplay"
+    "SteeringParticipantLib::SteeringDisplay"
 )
 
 # Get the DataReader
