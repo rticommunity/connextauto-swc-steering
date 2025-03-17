@@ -131,24 +131,33 @@ Demonstrate Sterring Column control using RTI Connext DDS.
 
 - On Remote Terminal, [run apps as before for the target architecture](#run-the-applications)
 
-## Overview
+## Data Architecture
 
 The demo comprises of three applications exchanging data over the RTI Connext Databus, using DDS. They use the datatypes defined in the files below.
 - [$DATABUSHOME/res/types/data/actuation/Steering_t.idl](https://github.com/rticommunity/connextauto-bus/blob/master/res/types/data/actuation/Steering_t.idl)
 
-The components are decribed below.
+The Quality of Service (QoS) profiles are defined in the files below.
+
+- [$DATABUSHOME/res/qos/services/steering/](https://github.com/rticommunity/connextauto-bus/tree/master/res/qos/services/steering)
+
+The data interfaces are defined in the files below.
+
+- [$DATABUSHOME/if/steering/](https://github.com/rticommunity/connextauto-bus/tree/master/if/steering)
+
+You can browse the data architecture using [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
+
+  -  Launch [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html)
+  - Open the [`$DATABUSHOME/connextauto.rtisdproj`](https://github.com/rticommunity/connextauto-bus/blob/master/connextauto_steering.rtisdproj) project in the *RTI System Designer*
+
+## Component Applications
+
+The component applications are decribed below.
 
 - **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status
 - **SteeringController** writes steering commands
 - **SteeringDisplay** takes and displays steering status
 
 The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components have two implementaion variants: one in C++ with a textual user interface, and another in Python with a GUI.
-
-To browse the data architecture, including QoS, use [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
-
-  -  Launch [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html)
-  - Open the [`$DATABUSHOME/connextauto.rtisdproj`](https://github.com/rticommunity/connextauto-bus/blob/master/connextauto_steering.rtisdproj) project
-
 
 ---
 (C) Copyright 2020-2025 Real-Time Innovations, Inc.  All rights reserved.
