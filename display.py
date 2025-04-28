@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 def load_image():
     global image, tk_image, canvas
-    image = Image.open(script_dir + "/img/ford-f150-carbon-fiber-steering-wheel.jpg")
+    image = Image.open(script_dir + "/img/steering-wheel.png")
     display_image(angle)
     canvas.config(width=tk_image.width(), height=tk_image.height())
     start_rotation_loop()
