@@ -1,0 +1,3 @@
+[submodule "bus"]
+	path = bus
+	url = ../connextauto-bus
