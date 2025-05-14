@@ -10,8 +10,19 @@
 ######################################################################
 
 ifndef DATABUSHOME
-    DATABUSHOME := $(shell cd ../connextauto-bus/; pwd -P)
+    DATABUSHOME := bus
 endif
+
+# ----------------------------------------------------------------------------
+
+help: $(TARGET_ARCH)
+	@echo
+	@echo Available Commands:
+	@echo 'make -f makefile_<arch> : build apps for <arch>'
+	@echo 'clean          : cleanup generated files'
+	@echo 'bus            : sparse checkout bus submodule and generate xml types'
+	@echo '<arch>/<app>   : run the app (if xml types are missing run: make bus)'
+	@echo '<arch>/package : package apps and runtime for execution on another host'
 
 # ----------------------------------------------------------------------------
 # Datatypes to build
@@ -43,7 +54,7 @@ $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp : \
 	$(NDDSHOME)/bin/rtiddsgen $(IDL_DIR)/$(STEERING_t).idl -d . -replace -language C++11
 #
 # Here is how we create those subdirectories automatically.
-%.dir :
+%.dir : bus
 	@echo "Checking directory $*"
 	@if [ ! -d $* ]; then \
 		echo "Making directory $*"; \
@@ -56,7 +67,39 @@ clean:
 	-rm -rf objs
 	-rm $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
 	    $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp
-	-rm steering_*.tgz
+	-find bus/res/types -name \*.xml -exec rm {} \;
+	-rm package_*.tgz
+
+# ----------------------------------------------------------------------------
+
+# sparse checkout the bus submodule and generate the xml datatypes
+bus: bus.sparse.enable bus.xml
+
+# sparse checkout the bus submodule
+bus.sparse.enable:
+	@cd bus/ && \
+	git sparse-checkout set \
+		if/steering \
+		res/types/data/actuation \
+		res/qos/data res/qos/services/steering \
+		res/env \
+		bin && \
+	ls -F .
+
+# list the files from the bus submodule sparse checkout
+bus.sparse.list:
+	@cd bus/ && \
+	git sparse-checkout list
+
+# disable bus sparse checkout
+bus.sparse.disable:
+	@cd bus/ && \
+	git sparse-checkout disable && \
+	ls -F .
+
+# generate the xml datatypes from the IDL types checked out in the bus submodule
+bus.xml:
+	${NDDSHOME}/bin/rtiddsgen -convertToXml -r -inputIDL bus/res/types
 
 # ----------------------------------------------------------------------------
 # Run the apps
@@ -86,7 +129,7 @@ py/controller:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
 
 # ----------------------------------------------------------------------------
-# Running on a remote target (eg Raspberry Pi)
+# Package apps and runtime for running on a remote target (eg Raspberry Pi)
 #
 # Local Terminal: Package apps and config files
 #     make <arch>/package
@@ -96,25 +139,21 @@ py/controller:
 #     This creates a package ./steering_<arch>.tgz
 #
 # Transfer the package to the remote host
-#     scp steering_<arch>.tgz user@server:/remote/path/
+#     scp package_<arch>.tgz user@server:/remote/path/
 #
 # Remote Terminal
 #     # Unpackage apps and config files
 #     cd /remote/path
-#     tar zxvf steering_<arch>.tgz
-#     cd connextauto-swc-steering
+#     tar zxvf package_<arch>.tgz
 #
-#     # run apps as before:
-#     make armv8Linux4gcc7.3.0/display
+#     # run apps as before, e.g.:
+#     make armv8Linux4gcc7.3.0/actuator
 %/package:
-	cd .. && \
-	tar zcvf steering_$*.tgz \
-		connextauto-bus/bin \
-		connextauto-bus/if \
-		connextauto-bus/res \
-		connextauto-swc-steering/img \
-		connextauto-swc-steering/*.py \
-		connextauto-swc-steering/makefile \
-		connextauto-swc-steering/makefile_$* \
-		connextauto-swc-steering/objs/$*/*[^.o]
-	mv ../steering_$*.tgz .
+	tar zcvf package_$*.tgz \
+		bus/bin \
+		bus/if \
+		bus/res \
+		img \
+		*.py \
+		makefile \
+		objs/$*/*[^.o]

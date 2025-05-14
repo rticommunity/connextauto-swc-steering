@@ -6,7 +6,7 @@ SteeringTypes*
 !SteeringTypes.idl
 
 Steering_t*
-steering_*.tgz
+*_*.tgz
 
 # Temporary build artifacts
 build*/
