@@ -20,8 +20,11 @@ help: $(TARGET_ARCH)
 	@echo Available Commands:
 	@echo 'make -f makefile_<arch> : build apps for <arch>'
 	@echo 'clean          : cleanup generated files'
+	@echo 'init           : init and update git submodules'
 	@echo 'bus            : sparse checkout bus submodule and generate xml types'
 	@echo '<arch>/<app>   : run the app (if xml types are missing run: make bus)'
+	@echo '   app = actuator | controller | display'
+	@echo '   arch = <arch> | py '
 	@echo '<arch>/package : package apps and runtime for execution on another host'
 
 # ----------------------------------------------------------------------------
@@ -31,6 +34,7 @@ IDL_DIR        := $(DATABUSHOME)/res/types/data/actuation
 SOURCES = $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx
 COMMONSOURCES = $(notdir $(SOURCES))
 
+# Apps to build
 EXEC          = SteeringColumn_display SteeringColumn_controller SteeringColumn_actuator
 DIRECTORIES   = objs.dir objs/$(TARGET_ARCH).dir
 COMMONOBJS    = $(COMMONSOURCES:%.cxx=objs/$(TARGET_ARCH)/%.o)
@@ -71,31 +75,54 @@ clean:
 	-rm package_*.tgz
 
 # ----------------------------------------------------------------------------
+# init and update submodules
+
+init:
+	git submodule update --init
+
+# ----------------------------------------------------------------------------
+# bus submodule (common data architecture)
 
 # sparse checkout the bus submodule and generate the xml datatypes
-bus: bus.sparse.enable bus.xml
+bus: init bus.sparse.enable.nocone bus.xml
 
 # sparse checkout the bus submodule
-bus.sparse.enable:
+bus.sparse.enable: bus.sparse.disable
 	@cd bus/ && \
 	git sparse-checkout set \
 		if/steering \
 		res/types/data/actuation \
-		res/qos/data res/qos/services/steering \
+		res/qos/data \
+		res/qos/services/steering \
 		res/env \
 		bin && \
 	ls -F .
 
-# list the files from the bus submodule sparse checkout
-bus.sparse.list:
+# sparse checkout the bus submodule: just the relevant files
+bus.sparse.enable.nocone: bus.sparse.disable
 	@cd bus/ && \
-	git sparse-checkout list
+	git sparse-checkout set --no-cone \
+		/if/steering \
+		/res/types/data/actuation/Steering_t.idl \
+		/res/qos/data/snippets \
+		/res/qos/data/Flow_qos.xml /res/qos/data/Participant_qos.xml \
+		/res/qos/services/Domain_qos.xml \
+		/res/qos/services/steering \
+		/res/env/QOS_PROVIDER.sh \
+		/res/env/Steering.sh \
+		/bin/run \
+		/connextauto_steering.rtisdproj && \
+	ls -F .
 
 # disable bus sparse checkout
 bus.sparse.disable:
 	@cd bus/ && \
-	git sparse-checkout disable && \
-	ls -F .
+	git sparse-checkout disable
+
+# list the files from the bus submodule sparse checkout
+bus.sparse.ls:
+	@cd bus/ && \
+	git sparse-checkout list
 
 # generate the xml datatypes from the IDL types checked out in the bus submodule
 bus.xml:
