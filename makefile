@@ -9,6 +9,10 @@
 # be bound by those terms.
 ######################################################################
 
+# If undefined in the environment default NDDSHOME to install dir
+ifndef NDDSHOME
+    NDDSHOME := "/opt/rti.com/rti_connext_dds-7.3.0"
+endif
 ifndef DATABUSHOME
     DATABUSHOME := bus
 endif
@@ -16,16 +20,31 @@ endif
 # ----------------------------------------------------------------------------
 
 help: $(TARGET_ARCH)
-	@echo
 	@echo Available Commands:
-	@echo 'make -f makefile_<arch> : build apps for <arch>'
+	@echo ------------------
+	@echo 'init           : initialize, update, and checkout submodules'
+	@echo '<arch>/build   : build all apps for <arch>'
+	@echo '<arch>/<app>   : run the <app> for <arch>'
+	@echo '<arch>/swc     : package apps and runtime for execution on another host'
 	@echo 'clean          : cleanup generated files'
-	@echo 'init           : init and update git submodules'
 	@echo 'bus            : sparse checkout bus submodule and generate xml types'
-	@echo '<arch>/<app>   : run the app (if xml types are missing run: make bus)'
-	@echo '   app = actuator | controller | display'
-	@echo '   arch = <arch> | py '
-	@echo '<arch>/package : package apps and runtime for execution on another host'
+	@echo
+	@echo 'where'
+	@echo '   arch =  <arch> (Any RTI Connext Supported Platform) | py (Python) '
+	@echo '   app  = actuator | controller | display'
+
+# ----------------------------------------------------------------------------
+# initialize, update, and checkout submodules
+
+init: submodule.update bus
+
+submodule.update:
+	git submodule update --init
+
+# ----------------------------------------------------------------------------
+# build apps for <arch>'
+%/build :
+	make -f makefile_$*
 
 # ----------------------------------------------------------------------------
 # Datatypes to build
@@ -58,7 +77,7 @@ $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp : \
 	$(NDDSHOME)/bin/rtiddsgen $(IDL_DIR)/$(STEERING_t).idl -d . -replace -language C++11
 #
 # Here is how we create those subdirectories automatically.
-%.dir : bus
+%.dir :
 	@echo "Checking directory $*"
 	@if [ ! -d $* ]; then \
 		echo "Making directory $*"; \
@@ -71,24 +90,18 @@ clean:
 	-rm -rf objs
 	-rm $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
 	    $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp
-	-find bus/res/types -name \*.xml -exec rm {} \;
-	-rm package_*.tgz
-
-# ----------------------------------------------------------------------------
-# init and update submodules
-
-init:
-	git submodule update --init
+	-find $(DATABUSHOME)/res/types -name \*.xml -exec rm {} \;
+	-rm swc_*.tgz
 
 # ----------------------------------------------------------------------------
 # bus submodule (common data architecture)
 
 # sparse checkout the bus submodule and generate the xml datatypes
-bus: init bus.sparse.enable.nocone bus.xml
+bus: bus.sparse.enable.nocone bus.xml
 
 # sparse checkout the bus submodule
 bus.sparse.enable: bus.sparse.disable
-	@cd bus/ && \
+	@cd $(DATABUSHOME)/ && \
 	git sparse-checkout set \
 		if/steering \
 		res/types/data/actuation \
@@ -100,7 +113,7 @@ bus.sparse.enable: bus.sparse.disable
 
 # sparse checkout the bus submodule: just the relevant files
 bus.sparse.enable.nocone: bus.sparse.disable
-	@cd bus/ && \
+	@cd $(DATABUSHOME)/ && \
 	git sparse-checkout set --no-cone \
 		/if/steering \
 		/res/types/data/actuation/Steering_t.idl \
@@ -116,17 +129,17 @@ bus.sparse.enable.nocone: bus.sparse.disable
 
 # disable bus sparse checkout
 bus.sparse.disable:
-	@cd bus/ && \
+	@cd $(DATABUSHOME)/ && \
 	git sparse-checkout disable
 
 # list the files from the bus submodule sparse checkout
 bus.sparse.ls:
-	@cd bus/ && \
+	@cd $(DATABUSHOME)/ && \
 	git sparse-checkout list
 
 # generate the xml datatypes from the IDL types checked out in the bus submodule
 bus.xml:
-	${NDDSHOME}/bin/rtiddsgen -convertToXml -r -inputIDL bus/res/types
+	$(NDDSHOME)/bin/rtiddsgen -convertToXml -r -inputIDL $(DATABUSHOME)/res/types
 
 # ----------------------------------------------------------------------------
 # Run the apps
@@ -140,17 +153,17 @@ bus.xml:
 py/display:
 	$(DATABUSHOME)/bin/run Steering ./display.py
 
-STEERING_CONTROLLER_STRENGTH ?= 2
+STRENGTH ?= 2
 py/controller:
 	$(DATABUSHOME)/bin/run Steering ./controller.py \
-		--strength $(STEERING_CONTROLLER_STRENGTH)
+		--strength $(STRENGTH)
 
 %/display:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
 
 %/controller:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
-		--strength $(STEERING_CONTROLLER_STRENGTH)
+		--strength $(STRENGTH)
 
 %/actuator:
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
@@ -159,27 +172,27 @@ py/controller:
 # Package apps and runtime for running on a remote target (eg Raspberry Pi)
 #
 # Local Terminal: Package apps and config files
-#     make <arch>/package
+#     make <arch>/swc
 #     e.g.
-#	make x64Linux4gcc7.3.0/package
-#	make armv8Linux4gcc7.3.0/package
-#     This creates a package ./steering_<arch>.tgz
+#	make x64Linux4gcc7.3.0/swc
+#	make armv8Linux4gcc7.3.0/swc
+#     This creates a package ./swc_<arch>.tgz
 #
 # Transfer the package to the remote host
-#     scp package_<arch>.tgz user@server:/remote/path/
+#     scp swc_<arch>.tgz user@server:/remote/path/
 #
 # Remote Terminal
 #     # Unpackage apps and config files
 #     cd /remote/path
-#     tar zxvf package_<arch>.tgz
+#     tar zxvf swc_<arch>.tgz
 #
 #     # run apps as before, e.g.:
 #     make armv8Linux4gcc7.3.0/actuator
-%/package:
-	tar zcvf package_$*.tgz \
-		bus/bin \
-		bus/if \
-		bus/res \
+%/swc: %/build
+	tar zcvf swc_$*.tgz \
+		$(DATABUSHOME)/bin \
+		$(DATABUSHOME)/if \
+		$(DATABUSHOME)/res \
 		img \
 		*.py \
 		makefile \
