@@ -22,7 +22,8 @@ endif
 help: $(TARGET_ARCH)
 	@echo Available Commands:
 	@echo ------------------
-	@echo 'init           : initialize, update, and checkout submodules'
+	@echo 'init           : initialize, update, and checkout submodules (idempotent)'
+	@echo '                 (execute after every "make clean" or "git clone")'
 	@echo '<arch>/build   : build all apps for <arch>'
 	@echo '<arch>/<app>   : run the <app> for <arch>'
 	@echo '<arch>/swc     : package apps and runtime for execution on another host'
@@ -41,22 +42,35 @@ init: submodule.update bus
 submodule.update:
 	git submodule update --init
 
-# ----------------------------------------------------------------------------
-# build apps for <arch>'
-%/build :
-	make -f makefile_$*
 
 # ----------------------------------------------------------------------------
 # Datatypes to build
-STEERING_t     := Steering_t
-IDL_DIR        := $(DATABUSHOME)/res/types/data/actuation
-SOURCES = $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx
-COMMONSOURCES = $(notdir $(SOURCES))
+CDRSOURCES    := $(DATABUSHOME)/res/types/data/actuation/Steering_t.idl
+SOURCES       := $(CDRSOURCES:.idl=.cxx) $(CDRSOURCES:.idl=Plugin.cxx)
+COMMONSOURCES := $(notdir $(SOURCES))
 
 # Apps to build
 EXEC          = SteeringColumn_display SteeringColumn_controller SteeringColumn_actuator
 DIRECTORIES   = objs.dir objs/$(TARGET_ARCH).dir
 COMMONOBJS    = $(COMMONSOURCES:%.cxx=objs/$(TARGET_ARCH)/%.o)
+
+# ----------------------------------------------------------------------------
+# Build rules
+
+# Directory to hold generated type support files:
+GEN_DIR        := objs/gen/cxx
+
+# Generated headers and files
+GEN_HEADERS := $(addprefix $(GEN_DIR)/, $(COMMONSOURCES:.cxx=.hpp))
+GEN_FILES   := $(addprefix $(GEN_DIR)/, $(COMMONSOURCES)) $(GEN_HEADERS)
+
+# INCLUDES: Tell Compiler where to seach for generated include header files
+INCLUDES    += -I$(GEN_DIR)
+
+# VPATH: Tell Make where to search for prerequisites (source files).
+# This adds all unique directories from your sources list to the search path.
+VPATH       := $(sort $(GEN_DIR) $(SOURCE_DIR))
+
 
 # We actually stick the objects in a sub directory to keep your directory clean.
 $(TARGET_ARCH) : $(DIRECTORIES) $(COMMONOBJS) \
@@ -66,16 +80,17 @@ $(TARGET_ARCH) : $(DIRECTORIES) $(COMMONOBJS) \
 objs/$(TARGET_ARCH)/% : objs/$(TARGET_ARCH)/%.o
 	$(LINKER) $(LINKER_FLAGS) -o $@ $@.o $(COMMONOBJS) $(LIBS)
 
-objs/$(TARGET_ARCH)/%.o : $(SOURCE_DIR)%.cxx   $(SOURCE_DIR)$(STEERING_t).hpp
+objs/$(TARGET_ARCH)/%.o : %.cxx $(GEN_HEADERS)
 	$(COMPILER) $(COMPILER_FLAGS) -o $@ $(DEFINES) $(INCLUDES) -c $<
 
 #
 # Regenerate support files when idl file is modified
-$(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
-$(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp : \
-		$(IDL_DIR)/$(STEERING_t).idl
-	$(NDDSHOME)/bin/rtiddsgen $(IDL_DIR)/$(STEERING_t).idl -d . -replace -language C++11
-#
+$(GEN_FILES) : $(CDRSOURCES)
+	$(NDDSHOME)/bin/rtiddsgen $(CDRSOURCES) -d $(GEN_DIR) -replace -language C++11
+
+$(CDRSOURCES:.idl=.xml):
+	$(NDDSHOME)/bin/rtiddsgen -convertToXml -r -inputIDL $(DATABUSHOME)/res/types
+
 # Here is how we create those subdirectories automatically.
 %.dir :
 	@echo "Checking directory $*"
@@ -85,19 +100,82 @@ $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp : \
 	fi;
 
 # ----------------------------------------------------------------------------
+# Package apps and runtime for running on a remote target (eg Raspberry Pi)
+#
+# Local Terminal: Package apps and config files
+#     make <arch>/swc
+#     e.g.
+#	make x64Linux4gcc7.3.0/swc
+#	make armv8Linux4gcc7.3.0/swc
+#     This creates a package ./swc_<arch>.tgz
+#
+# Transfer the package to the remote host
+#     scp swc_<arch>.tgz user@server:/remote/path/
+#
+# Remote Terminal
+#     # Unpackage apps and config files
+#     cd /remote/path
+#     tar zxvf swc_<arch>.tgz
+#
+#     # run apps as before, e.g.:
+#     make armv8Linux4gcc7.3.0/actuator
+%/swc: %/build
+	tar zcvf swc_$*.tgz \
+		$(DATABUSHOME)/bin \
+		$(DATABUSHOME)/if \
+		$(DATABUSHOME)/res \
+		img \
+		*.py \
+		makefile \
+		objs/$*/*[^.o]
+
+# ----------------------------------------------------------------------------
+# build apps for <arch>
+%/build : $(GEN_DIR).dir
+	make -f makefile_$* $*
+
+# ----------------------------------------------------------------------------
 # Clean generated files and dirs
 clean:
 	-rm -rf objs
-	-rm $(SOURCE_DIR)$(STEERING_t)Plugin.cxx $(SOURCE_DIR)$(STEERING_t).cxx \
-	    $(SOURCE_DIR)$(STEERING_t).hpp $(SOURCE_DIR)$(STEERING_t)Plugin.hpp
 	-find $(DATABUSHOME)/res/types -name \*.xml -exec rm {} \;
 	-rm swc_*.tgz
+
+# ----------------------------------------------------------------------------
+# Run the apps
+#     make <arch>/<app>
+# e.g.
+#	make x64Linux4gcc7.3.0/display
+#	make armv8Linux4gcc7.3.0/display
+#
+#	make py/display
+#
+py/display: bus.xml
+	$(DATABUSHOME)/bin/run Steering ./display.py
+
+STRENGTH ?= 2
+py/controller: bus.xml
+	$(DATABUSHOME)/bin/run Steering ./controller.py \
+		--strength $(STRENGTH)
+
+%/display: bus.xml
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
+
+%/controller: bus.xml
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
+		--strength $(STRENGTH)
+
+%/actuator: bus.xml
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
 
 # ----------------------------------------------------------------------------
 # bus submodule (common data architecture)
 
 # sparse checkout the bus submodule and generate the xml datatypes
 bus: bus.sparse.enable.nocone bus.xml
+
+# generate the xml datatypes from the IDL types checked out in the bus submodule
+bus.xml: $(CDRSOURCES:.idl=.xml)
 
 # sparse checkout the bus submodule
 bus.sparse.enable: bus.sparse.disable
@@ -137,63 +215,4 @@ bus.sparse.ls:
 	@cd $(DATABUSHOME)/ && \
 	git sparse-checkout list
 
-# generate the xml datatypes from the IDL types checked out in the bus submodule
-bus.xml:
-	$(NDDSHOME)/bin/rtiddsgen -convertToXml -r -inputIDL $(DATABUSHOME)/res/types
-
 # ----------------------------------------------------------------------------
-# Run the apps
-#     make <arch>/<app>
-# e.g.
-#	make x64Linux4gcc7.3.0/display
-#	make armv8Linux4gcc7.3.0/display
-#
-#	make py/display
-#
-py/display:
-	$(DATABUSHOME)/bin/run Steering ./display.py
-
-STRENGTH ?= 2
-py/controller:
-	$(DATABUSHOME)/bin/run Steering ./controller.py \
-		--strength $(STRENGTH)
-
-%/display:
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
-
-%/controller:
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
-		--strength $(STRENGTH)
-
-%/actuator:
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
-
-# ----------------------------------------------------------------------------
-# Package apps and runtime for running on a remote target (eg Raspberry Pi)
-#
-# Local Terminal: Package apps and config files
-#     make <arch>/swc
-#     e.g.
-#	make x64Linux4gcc7.3.0/swc
-#	make armv8Linux4gcc7.3.0/swc
-#     This creates a package ./swc_<arch>.tgz
-#
-# Transfer the package to the remote host
-#     scp swc_<arch>.tgz user@server:/remote/path/
-#
-# Remote Terminal
-#     # Unpackage apps and config files
-#     cd /remote/path
-#     tar zxvf swc_<arch>.tgz
-#
-#     # run apps as before, e.g.:
-#     make armv8Linux4gcc7.3.0/actuator
-%/swc: %/build
-	tar zcvf swc_$*.tgz \
-		$(DATABUSHOME)/bin \
-		$(DATABUSHOME)/if \
-		$(DATABUSHOME)/res \
-		img \
-		*.py \
-		makefile \
-		objs/$*/*[^.o]
