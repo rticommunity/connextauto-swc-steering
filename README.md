@@ -3,6 +3,8 @@
 ## Introduction
 
 Demonstrate Steering Column control using RTI Connext DDS.
+![Steering Column Use Case Demo - Software System Architecure](img/steering-architecture.png)
+The demo comprises of three applications exchanging data over the RTI Connext DDS.
 
 ## Dependencies
 
@@ -122,19 +124,36 @@ Demonstrate Steering Column control using RTI Connext DDS.
 
 ## Component Applications
 
-The demo comprises of three applications exchanging data over the RTI Connext Databus, using DDS.
 The component applications are decribed below.
 
-- **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status
+- **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status.
+  A C++ implementation for the [*SteeringColumn*](bus/if/steering/SteeringColumn.xml) data inteface
+  is provided.
   - [SteeringColumn_actuator.cxx](SteeringColumn_actuator.cxx)
-- **SteeringController** writes steering commands
-  - [SteeringColumn_controller.cxx](SteeringColumn_controller.cxx)
-  - [controller.py](controller.py)
-- **SteeringDisplay** takes and displays steering status
-  - [SteeringColumn_display.cxx](SteeringColumn_display.cxx)
-  - [display.py](display.py)
+- **SteeringController** writes steering commands. Two alternative implementations for
+  the [*SteeringController*](bus/if/steering/SteeringController.xml) data inteface are provided.
+  - [SteeringColumn_controller.cxx](SteeringColumn_controller.cxx): command line interface
+  - [controller.py](controller.py): GUI interface (requires Python)
+- **SteeringDisplay** takes and displays steering status. Two alternative implementations for
+  the [*SteeringDisplay*](bus/if/steering/SteeringDisplay.xml) data inteface are provided.
+  - [SteeringColumn_display.cxx](SteeringColumn_display.cxx): command line interface
+  - [display.py](display.py): GUI interface (requires Python)
 
-The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components have two implementaion variants: one in C++ with a textual user interface, and another in Python with a GUI.
+The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components
+have two implementaion variants: one in C++ with a textual user interface, and another
+in Python with a GUI.
+
+The components can be launched anywhere (same host or multiple hosts)---as long as they are reachable, they
+auto discover one another. Both Python and C++ components can be simultaneously launched for a data
+interface.
+
+Any number of display components can be started to observe the state of the actuator, from any rechable host.
+
+Redundancy and failover is builtin to the controller and actuator components. When multiple controllers
+are started, the one with the highest STRENGTH controls the actuator. If it loses connnectivity
+(*not alive*), the control falls back to the next highest strength controller. If the actuator detects
+that none of the controllers are alive, it reverts to a safe "neutral" state.
+
 
 ## Common Data Architecture
 
