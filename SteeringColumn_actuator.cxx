@@ -53,12 +53,22 @@ void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader,
 
     dds::core::status::StatusMask status_mask = reader.status_changes();
 
+    // Check for incompatible status
+    if((status_mask & dds::core::status::StatusMask::requested_incompatible_qos()).any()) {
+        auto requested_incompatible_qos_status = reader.requested_incompatible_qos_status();
+            std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
+                      << "Requested Incompatible QoS by controller: "
+                      << requested_incompatible_qos_status.last_policy_id() << std::endl;
+    }
+
     // Check for liveliness status
     if ((status_mask & dds::core::status::StatusMask::liveliness_changed()).any()) {
         auto liveliness_status = reader.liveliness_changed_status();
         if (liveliness_status.not_alive_count_change() > 0) {
             std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
-                      << "Liveliness changed for controller:" << liveliness_status.last_publication_handle() << std::endl;
+                      << "Liveliness changed for controller:" << liveliness_status.last_publication_handle()
+                      << " (active " << liveliness_status.alive_count()
+                      << ", inactive " << liveliness_status.not_alive_count() << ")" << std::endl;
         }
         if (liveliness_status.alive_count() == 0) {
             safety_position = true;
@@ -70,10 +80,12 @@ void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader,
         auto subscription_status = reader.subscription_matched_status();
         if (subscription_status.current_count_change() > 0) {
             std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
-                      << "Matched controller:" << subscription_status.last_publication_handle() << std::endl;
+                      << "Matched controller:" << subscription_status.last_publication_handle()
+                      << " (count " << subscription_status.current_count() << ")" << std::endl;
         } else {
             std::cout << std::left << std::setw(OUTPUT_WIDTH) << std::setfill(' ')
-                      << "Unmatched controller:" << subscription_status.last_publication_handle() << std::endl;
+                      << "Unmatched controller:" << subscription_status.last_publication_handle()
+                      << " (count " << subscription_status.current_count() << ")" << std::endl;
         }
         if( subscription_status.current_count() == 0) {
             safety_position = true;
@@ -83,12 +95,13 @@ void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader,
     // Check for deadline status
     if((status_mask & dds::core::status::StatusMask::requested_deadline_missed()).any()) {
         auto deadline_status = reader.requested_deadline_missed_status();
-        std::cout << "Deadline missed from controller." << std::endl;
+        std::cout << "Deadline missed!" << std::endl;
     }
 
+    // Steer to neutral position if there are no active controllers:
     if(safety_position) {
         writer.write(dds::actuation::SteeringActual(0));
-        std::cout << "Writing Steering Position: 0" << std::endl;
+        std::cout << "Steering to Neutral Position: 0" << std::endl;
     }
 }
 
@@ -136,6 +149,7 @@ void run_publisher_application(unsigned int domain_id)
     // Enable the statuses to monitor
     dds::core::cond::StatusCondition status_condition(command_reader);
     status_condition.enabled_statuses(
+        dds::core::status::StatusMask::requested_incompatible_qos() |
         dds::core::status::StatusMask::subscription_matched() |
         dds::core::status::StatusMask::requested_deadline_missed() |
         dds::core::status::StatusMask::liveliness_changed());
