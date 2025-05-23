@@ -41,7 +41,7 @@ reader = dds.DynamicData.DataReader(
 participant.enable()
 
 root = tk.Tk()
-root.title("Steering Column Display")
+root.title("Steering Display")
 
 canvas = tk.Canvas(root)
 canvas.pack(fill=tk.BOTH, expand=True)
