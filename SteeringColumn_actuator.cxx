@@ -35,7 +35,7 @@
 void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, dds::pub::DataWriter<dds::actuation::SteeringActual> writer)
 {
     // Take all samples
-    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.read();
+    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.take();
     for (auto sample : samples) {
         if (sample.info().valid()) {
             if (sample.info().state().sample_state() == dds::sub::status::SampleState::not_read()) {
@@ -143,7 +143,7 @@ void run_publisher_application(unsigned int domain_id)
     // handler to process the data
     dds::sub::cond::ReadCondition read_condition(
         command_reader,
-        dds::sub::status::DataState::any(),
+        dds::sub::status::DataState::new_data(),
         [command_reader, status_writer]() { process_data(command_reader, status_writer); });
 
     // Enable the statuses to monitor
@@ -169,7 +169,7 @@ void run_publisher_application(unsigned int domain_id)
 
     std::cout << "Actuator loop starting..." << std::endl;
     while (!application::shutdown_requested) {
-        waitset.dispatch(dds::core::Duration(1));
+        waitset.dispatch(dds::core::Duration::from_secs(10));
     }
 }
 
