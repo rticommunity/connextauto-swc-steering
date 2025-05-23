@@ -29,17 +29,18 @@
 
 #include "application.hpp"  // for command line parsing and ctrl-c
 #include "Steering_t.hpp"
+using namespace rti;
 
 #define OUTPUT_WIDTH 35
 
-void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, dds::pub::DataWriter<dds::actuation::SteeringActual> writer)
+void process_data(dds::sub::DataReader<actuation::SteeringDesired> reader, dds::pub::DataWriter<actuation::SteeringActual> writer)
 {
     // Take all samples
-    dds::sub::LoanedSamples<dds::actuation::SteeringDesired> samples = reader.take();
+    dds::sub::LoanedSamples<actuation::SteeringDesired> samples = reader.take();
     for (auto sample : samples) {
         if (sample.info().valid()) {
             if (sample.info().state().sample_state() == dds::sub::status::SampleState::not_read()) {
-                writer.write(dds::actuation::SteeringActual(sample.data().position()));
+                writer.write(actuation::SteeringActual(sample.data().position()));
             }
         }
     }
@@ -47,8 +48,8 @@ void process_data(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, 
     return;
 } // The LoanedSamples destructor returns the loan
 
-void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader, 
-                   dds::pub::DataWriter<dds::actuation::SteeringActual> writer){
+void handle_status(dds::sub::DataReader<actuation::SteeringDesired> reader,
+                   dds::pub::DataWriter<actuation::SteeringActual> writer){
     bool safety_position(false);
 
     dds::core::status::StatusMask status_mask = reader.status_changes();
@@ -100,7 +101,7 @@ void handle_status(dds::sub::DataReader<dds::actuation::SteeringDesired> reader,
 
     // Steer to neutral position if there are no active controllers:
     if(safety_position) {
-        writer.write(dds::actuation::SteeringActual(0));
+        writer.write(actuation::SteeringActual(0));
         std::cout << "Steering to Neutral Position: 0" << std::endl;
     }
 }
@@ -113,8 +114,8 @@ void run_publisher_application(unsigned int domain_id)
     // When using user-generated types, you must register the type with RTI
     // Connext DDS before creating the participants and the rest of the entities
     // in your system
-    rti::domain::register_type<dds::actuation::SteeringActual>("dds::actuation::SteeringActual");
-    rti::domain::register_type<dds::actuation::SteeringDesired>("dds::actuation::SteeringDesired");
+    rti::domain::register_type<actuation::SteeringActual>("rti::actuation::SteeringActual");
+    rti::domain::register_type<actuation::SteeringDesired>("rti::actuation::SteeringDesired");
 
     // Create the participant, changing the domain id from the one in the
     // configuration
@@ -128,14 +129,14 @@ void run_publisher_application(unsigned int domain_id)
         params);
 
     // Lookup the DataWriter from the configuration
-    dds::pub::DataWriter<dds::actuation::SteeringActual> status_writer =
-    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<dds::actuation::SteeringActual>>(
+    dds::pub::DataWriter<actuation::SteeringActual> status_writer =
+    rti::pub::find_datawriter_by_name<dds::pub::DataWriter<actuation::SteeringActual>>(
         participant,
         "outputs::Steering_writer");
 
     // Lookup the DataReader from the configuration
-    dds::sub::DataReader<dds::actuation::SteeringDesired> command_reader =
-    rti::sub::find_datareader_by_name<dds::sub::DataReader<dds::actuation::SteeringDesired>>(
+    dds::sub::DataReader<actuation::SteeringDesired> command_reader =
+    rti::sub::find_datareader_by_name<dds::sub::DataReader<actuation::SteeringDesired>>(
         participant,
         "inputs::Steering_reader");
 

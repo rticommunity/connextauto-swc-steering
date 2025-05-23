@@ -29,7 +29,9 @@ help: $(TARGET_ARCH)
 	@echo '<arch>/<app>   : run the <app> for <arch>'
 	@echo '<arch>/swc     : package apps and runtime for execution on another host'
 	@echo 'clean          : cleanup generated files'
+	@echo
 	@echo 'bus            : sparse checkout bus submodule and generate xml types'
+	@echo 'bus.update     : update bus submodule with common data architecture repo changes'
 	@echo
 	@echo 'where'
 	@echo '   arch =  <arch> (Any RTI Connext Supported Platform) | py (Python) '
@@ -38,11 +40,10 @@ help: $(TARGET_ARCH)
 # ----------------------------------------------------------------------------
 # initialize, update, and checkout submodules
 
-init: submodule.update bus
+init: submodule.init bus
 
-submodule.update:
+submodule.init:
 	git submodule update --init
-
 
 # ----------------------------------------------------------------------------
 # Datatypes to build
@@ -91,6 +92,9 @@ $(GEN_FILES) : $(CDRSOURCES)
 
 $(CDRSOURCES:.idl=.xml):
 	$(NDDSHOME)/bin/rtiddsgen -convertToXml -r -inputIDL $(DATABUSHOME)/res/types
+
+# generate the xml datatypes from the IDL types checked out in the bus submodule
+types.xml: $(CDRSOURCES:.idl=.xml)
 
 # Here is how we create those subdirectories automatically.
 %.dir :
@@ -151,36 +155,37 @@ clean:
 #
 #	make py/display
 #
-py/display: bus.xml
+py/display: types.xml
 	$(DATABUSHOME)/bin/run Steering ./display.py
 
 STRENGTH ?= 2
-py/controller: bus.xml
+py/controller: types.xml
 	$(DATABUSHOME)/bin/run Steering ./controller.py \
 		--strength $(STRENGTH)
 
-%/display: bus.xml
+%/display: types.xml
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
 
-%/controller: bus.xml
+%/controller: types.xml
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
 		--strength $(STRENGTH)
 
-%/actuator: bus.xml
+%/actuator: types.xml
 	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
 
 # ----------------------------------------------------------------------------
 # bus submodule (common data architecture)
 
-# sparse checkout the bus submodule and generate the xml datatypes
-bus: bus.sparse.enable.nocone bus.xml
+# Update bus submodule to the latest commit in common data architecture repo master
+bus.update:
+	git submodule update --remote bus
 
-# generate the xml datatypes from the IDL types checked out in the bus submodule
-bus.xml: $(CDRSOURCES:.idl=.xml)
+# sparse checkout the bus submodule and generate the xml datatypes
+bus: bus.sparse.enable.nocone types.xml
 
 # sparse checkout the bus submodule
 bus.sparse.enable: bus.sparse.disable
-	@cd $(DATABUSHOME)/ && \
+	@cd bus/ && \
 	git sparse-checkout set \
 		if/steering \
 		res/types/data/actuation \
@@ -192,7 +197,7 @@ bus.sparse.enable: bus.sparse.disable
 
 # sparse checkout the bus submodule: just the relevant files
 bus.sparse.enable.nocone: bus.sparse.disable
-	@cd $(DATABUSHOME)/ && \
+	@cd bus/ && \
 	git sparse-checkout set --no-cone \
 		/if/steering \
 		/res/types/data/actuation/Steering_t.idl \
@@ -208,12 +213,12 @@ bus.sparse.enable.nocone: bus.sparse.disable
 
 # disable bus sparse checkout
 bus.sparse.disable:
-	@cd $(DATABUSHOME)/ && \
+	@cd bus/ && \
 	git sparse-checkout disable
 
 # list the files from the bus submodule sparse checkout
 bus.sparse.ls:
-	@cd $(DATABUSHOME)/ && \
+	@cd bus/ && \
 	git sparse-checkout list
 
 # ----------------------------------------------------------------------------
