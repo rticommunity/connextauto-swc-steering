@@ -62,7 +62,7 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
 - Clean everthing and start fresh again:
 
       make clean init
-  
+
 - Run `make` or `make help` to see the list of available commands
 
       make [help]
@@ -130,18 +130,22 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
 
 The component applications are decribed below.
 
-- **SteeringColumn**, a.k.a. the steering actuator, reads steering commands and writes steering status.
-  A C++ implementation for the [*SteeringColumn*](bus/if/steering/SteeringColumn.xml) data inteface
+- **SteeringColumn**, a.k.a. the steering actuator, takes steering commands and writes steering status.
+  A C++ implementation for the [*SteeringColumn*](bus/if/steering/SteeringColumn.xml) data interface
   is provided.
-  - [SteeringColumn.cxx](SteeringColumn.cxx)
+  - [SteeringColumn.cxx](SteeringColumn.cxx): monitors discovered controllers, their
+  liveliness, and also data delivery deadlines as per the QosPolicy settings:
+    - when a controller becomes inactive (loses livelineses), automatically switches over
+     the highest ownership strength active (alive) controller
+    - when there are no active controllers, it steers to a safe state
 - **SteeringController** writes steering commands. Two alternative implementations for
-  the [*SteeringController*](bus/if/steering/SteeringController.xml) data inteface are provided.
+  the [*SteeringController*](bus/if/steering/SteeringController.xml) data interface are provided.
   - [SteeringController.cxx](SteeringController.cxx): command line interface
-  - [controller.py](controller.py): GUI interface (requires Python)
+  - [SteeringController.py](SteeringController.py): GUI interface (requires Python)
 - **SteeringDisplay** takes and displays steering status. Two alternative implementations for
-  the [*SteeringDisplay*](bus/if/steering/SteeringDisplay.xml) data inteface are provided.
+  the [*SteeringDisplay*](bus/if/steering/SteeringDisplay.xml) data interface are provided.
   - [SteeringDisplay.cxx](SteeringDisplay.cxx): command line interface
-  - [display.py](display.py): GUI interface (requires Python)
+  - [SteeeringDisplay.py](SteeringDisplay.py): GUI interface (requires Python)
 
 The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components
 have two implementaion variants: one in C++ with a textual user interface, and another

@@ -156,11 +156,11 @@ clean:
 #	make py/display
 #
 py/display: types.xml
-	$(DATABUSHOME)/bin/run Steering ./display.py
+	$(DATABUSHOME)/bin/run Steering ./SteeringDisplay.py
 
 STRENGTH ?= 2
 py/controller: types.xml
-	$(DATABUSHOME)/bin/run Steering ./controller.py \
+	$(DATABUSHOME)/bin/run Steering ./SteeringController.py \
 		--strength $(STRENGTH)
 
 %/display: types.xml
