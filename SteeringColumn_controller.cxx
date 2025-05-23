@@ -79,8 +79,8 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
         std::cout << "Writing Steering Position: " << data.position() << std::endl;
         command_writer.write(data);
 
-        // Send every 100 ms
-        rti::util::sleep(dds::core::Duration(0, 100000000));
+        // Wait 1 second
+         rti::util::sleep(dds::core::Duration::from_secs(1));
     }
 }
 

@@ -15,6 +15,7 @@ ifndef NDDSHOME
 endif
 ifndef DATABUSHOME
     DATABUSHOME := bus
+    #DATABUSHOME := ../connextauto-bus
 endif
 
 # ----------------------------------------------------------------------------
