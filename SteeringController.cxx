@@ -76,7 +76,8 @@ void run_publisher_application(unsigned int domain_id, unsigned int strength)
     // Main loop, write data
     for (unsigned int samples_written = 0; !application::shutdown_requested; samples_written++) {
         // Modify the data to be written here
-        data.position(samples_written % 360);
+        // Shift to the range: -180 to +180
+        data.position((samples_written + 180) % 360 - 180.0);
         std::cout << "Writing Steering Position: " << data.position() << std::endl;
         command_writer.write(data);
 
