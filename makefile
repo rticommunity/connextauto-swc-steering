@@ -52,7 +52,7 @@ SOURCES       := $(CDRSOURCES:.idl=.cxx) $(CDRSOURCES:.idl=Plugin.cxx)
 COMMONSOURCES := $(notdir $(SOURCES))
 
 # Apps to build
-EXEC          = SteeringColumn_display SteeringColumn_controller SteeringColumn_actuator
+EXEC          = SteeringDisplay SteeringController SteeringColumn
 DIRECTORIES   = objs.dir objs/$(TARGET_ARCH).dir
 COMMONOBJS    = $(COMMONSOURCES:%.cxx=objs/$(TARGET_ARCH)/%.o)
 
@@ -164,14 +164,14 @@ py/controller: types.xml
 		--strength $(STRENGTH)
 
 %/display: types.xml
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_display
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringDisplay
 
 %/controller: types.xml
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_controller \
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringController \
 		--strength $(STRENGTH)
 
 %/actuator: types.xml
-	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn_actuator
+	$(DATABUSHOME)/bin/run Steering ./objs/$*/SteeringColumn
 
 # ----------------------------------------------------------------------------
 # bus submodule (common data architecture)

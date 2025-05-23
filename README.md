@@ -59,6 +59,10 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
   | armv8Linux4gcc7.3.0  | make armv8Linux4gcc7.3.0/build
   | x64Darwin20clang12.0 | make x64Darwin20clang12.0/build
 
+- Clean everthing and start fresh again:
+
+      make clean init
+  
 - Run `make` or `make help` to see the list of available commands
 
       make [help]
@@ -98,27 +102,27 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
 
 ## Running on a remote target (e.g. Raspberry Pi)
 
-- On Local Terminal: Package apps and config files
+- On Local Terminal: Package software component (apps and config files):
 
-        make <arch>/package
+        make <arch>/swc
 
   e.g.:
   | `<arch>`             | command
   | ---------------------|--------------------------------------
-  | x64Linux4gcc7.3.0    | make x64Linux4gcc7.3.0/package
-  | armv8Linux4gcc7.3.0  | make armv8Linux4gcc7.3.0/package
-  | x64Darwin20clang12.0 | make x64Darwin20clang12.0/package
+  | x64Linux4gcc7.3.0    | make x64Linux4gcc7.3.0/swc
+  | armv8Linux4gcc7.3.0  | make armv8Linux4gcc7.3.0/swc
+  | x64Darwin20clang12.0 | make x64Darwin20clang12.0/swc
 
-  This step creates a compressed tar package: `package_<arch>.tgz`
+  This step creates a compressed tar package: `swc_<arch>.tgz`
 
 - Transfer the package to the remote host, e.g.:
 
-      scp package_<arch>.tgz user@server:/remote/path/
+      scp swc_<arch>.tgz user@server:/remote/path/
 
 - On Remote Terminal: Unpack the apps and config files
 
       cd /remote/path
-      tar zxvf package_<arch>.tgz
+      tar zxvf swc_<arch>.tgz
 
 - On Remote Terminal, [run apps as before for the target architecture](#run-the-applications)
 
@@ -126,17 +130,17 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
 
 The component applications are decribed below.
 
-- **SteeringColumn**, a.k.a. the actuator, reads steering commands and writes steering status.
+- **SteeringColumn**, a.k.a. the steering actuator, reads steering commands and writes steering status.
   A C++ implementation for the [*SteeringColumn*](bus/if/steering/SteeringColumn.xml) data inteface
   is provided.
-  - [SteeringColumn_actuator.cxx](SteeringColumn_actuator.cxx)
+  - [SteeringColumn.cxx](SteeringColumn.cxx)
 - **SteeringController** writes steering commands. Two alternative implementations for
   the [*SteeringController*](bus/if/steering/SteeringController.xml) data inteface are provided.
-  - [SteeringColumn_controller.cxx](SteeringColumn_controller.cxx): command line interface
+  - [SteeringController.cxx](SteeringController.cxx): command line interface
   - [controller.py](controller.py): GUI interface (requires Python)
 - **SteeringDisplay** takes and displays steering status. Two alternative implementations for
   the [*SteeringDisplay*](bus/if/steering/SteeringDisplay.xml) data inteface are provided.
-  - [SteeringColumn_display.cxx](SteeringColumn_display.cxx): command line interface
+  - [SteeringDisplay.cxx](SteeringDisplay.cxx): command line interface
   - [display.py](display.py): GUI interface (requires Python)
 
 The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components
