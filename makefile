@@ -23,27 +23,18 @@ endif
 help: $(TARGET_ARCH)
 	@echo Available Commands:
 	@echo ------------------
-	@echo 'init           : initialize, update, and checkout submodules (idempotent)'
-	@echo '                 (execute after every "make clean" or "git clone")'
-	@echo '<arch>/build   : build all apps for <arch>'
-	@echo '<arch>/<app>   : run the <app> for <arch>'
-	@echo '<arch>/swc     : package apps and runtime for execution on another host'
-	@echo 'clean          : cleanup generated files'
+	@echo 'init         : initialize, update, and checkout submodules (idempotent)'
+	@echo '               (execute after every "make update" or "git clone")'
+	@echo '<arch>/build : build all apps for <arch>'
+	@echo '<arch>/<app> : run the <app> for <arch>'
+	@echo '<arch>/swc   : package apps and runtime for execution on another host'
+	@echo 'clean        : cleanup generated files'
 	@echo
-	@echo 'bus            : sparse checkout bus submodule and generate xml types'
-	@echo 'bus.update     : update bus submodule with common data architecture repo changes'
+	@echo 'update       : update bus submodule to latest commit in remote tracking branch'
 	@echo
 	@echo 'where'
 	@echo '   arch =  <arch> (Any RTI Connext Supported Platform) | py (Python) '
 	@echo '   app  = actuator | controller | display'
-
-# ----------------------------------------------------------------------------
-# initialize, update, and checkout submodules
-
-init: submodule.init bus
-
-submodule.init:
-	git submodule update --init
 
 # ----------------------------------------------------------------------------
 # Datatypes to build
@@ -176,15 +167,8 @@ py/controller: types.xml
 # ----------------------------------------------------------------------------
 # bus submodule (common data architecture)
 
-# Update bus submodule to the latest commit in common data architecture repo master
-bus.update:
-	git submodule update --remote bus
-
-# sparse checkout the bus submodule and generate the xml datatypes
-bus: bus.sparse.enable.nocone types.xml
-
 # sparse checkout the bus submodule
-bus.sparse.enable: bus.sparse.disable
+bus.sparse.enable: submodule.init bus.sparse.disable
 	@cd bus/ && \
 	git sparse-checkout set \
 		if/steering \
@@ -196,7 +180,7 @@ bus.sparse.enable: bus.sparse.disable
 	ls -F .
 
 # sparse checkout the bus submodule: just the relevant files
-bus.sparse.enable.nocone: bus.sparse.disable
+bus.sparse.enable.nocone: submodule.init bus.sparse.disable
 	@cd bus/ && \
 	git sparse-checkout set --no-cone \
 		/if/steering \
@@ -220,5 +204,20 @@ bus.sparse.disable:
 bus.sparse.ls:
 	@cd bus/ && \
 	git sparse-checkout list
+
+# ----------------------------------------------------------------------------
+# submodules
+
+# initialize and update all submodules
+submodule.init:
+	git submodule update --init
+
+# bus submodule: update to the latest commit in remote tracking branch ("master")
+update:
+	git submodule update --remote bus
+
+# initialize and update all submodules, and checkout bus submodule (sparse-checkout)
+init: submodule.init \
+      bus.sparse.enable.nocone
 
 # ----------------------------------------------------------------------------
