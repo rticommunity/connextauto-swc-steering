@@ -4,7 +4,17 @@
 
 Demonstrate Steering Column control using RTI Connext DDS.
 ![Steering Column Use Case Demo - Software System Architecure](img/steering-architecture.png)
-The demo comprises of three applications exchanging data over the RTI Connext DDS.
+
+The demo comprises of three applications exchanging data over the RTI Connext DDS, and shows how
+to build a safe redundant fault tolerant real-time control system.
+- a Steering Column (or *actuator*)
+- one or more redundant Steering Controllers, and
+- zero or more Steering Displays
+
+The steering column can be commanded by one or more redundant controllers, and the status
+is shown on the displays. Only one controller is primary, the rest are secondary. Failover is
+automatic when the primary becomes inactive. When there are no active controllers, the steering column
+automatically goes to a safe state.
 
 ## Dependencies
 
@@ -128,7 +138,9 @@ The demo comprises of three applications exchanging data over the RTI Connext DD
 
 ## Component Applications
 
-The component applications are decribed below.
+The component applications are decribed below. The **SteeringColumn** application is implemented in C++. The
+**SteeringController** and **SteeringDisplay** applications have two alternative implementation variants:
+one in C++ with a textual user interface, and another in Python with a GUI.
 
 - **SteeringColumn**, a.k.a. the steering actuator, takes steering commands and writes steering status.
   A C++ implementation for the [*SteeringColumn*](bus/if/steering/SteeringColumn.xml) data interface
@@ -138,24 +150,24 @@ The component applications are decribed below.
     - when a controller becomes inactive (loses livelineses), automatically switches over
      the highest ownership strength active (alive) controller
     - when there are no active controllers, it steers to a safe state
+    - prints the events as they happen and the curent count of active and matched controllers on stdout
 - **SteeringController** writes steering commands. Two alternative implementations for
   the [*SteeringController*](bus/if/steering/SteeringController.xml) data interface are provided.
   - [SteeringController.cxx](SteeringController.cxx): command line interface
+    - periodically outputs a steeering command angle, increasing clockwise
   - [SteeringController.py](SteeringController.py): GUI interface (requires Python)
+    - user can set a steering command angle by moving a slider
 - **SteeringDisplay** takes and displays steering status. Two alternative implementations for
   the [*SteeringDisplay*](bus/if/steering/SteeringDisplay.xml) data interface are provided.
   - [SteeringDisplay.cxx](SteeringDisplay.cxx): command line interface
+    - prints the actual steeting wheel status on stdout
   - [SteeeringDisplay.py](SteeringDisplay.py): GUI interface (requires Python)
+    - shows the actual steering wheel status in a simulated steering wheel GUI
 
-The SteeringColumn is implemented in C++. The SteeringController and SteeringDisplay components
-have two implementaion variants: one in C++ with a textual user interface, and another
-in Python with a GUI.
-
-The components can be launched anywhere (same host or multiple hosts)---as long as they are reachable, they
-auto discover one another. Both Python and C++ components can be simultaneously launched for a data
-interface.
-
-Any number of display components can be started to observe the state of the actuator, from any rechable host.
+The component applications can be launched anywhere (same host or multiple hosts)---as long as they
+are reachable, they auto discover one another. Both Python and C++ components can be
+simultaneously launched for a data interface. Any number of display components can be started
+to observe the state of the actuator, from any reachable host.
 
 Redundancy and failover is builtin to the controller and actuator components. When multiple controllers
 are started, the one with the highest STRENGTH controls the actuator. If it loses connnectivity
@@ -163,10 +175,62 @@ are started, the one with the highest STRENGTH controls the actuator. If it lose
 that none of the controllers are alive, it reverts to a safe "neutral" state.
 
 
+## How to Demo?
+
+The component applications can be run in one or more host machines, virtual machines, or containers (e.g. docker).
+
+### Demo Sequence
+
+- Run **SteeringColumn** app
+- Run **SteeringDisplay** apps (C++ and Python)
+  - any number of these can be launched
+- Run **SteeringController** apps (C++ and Python)
+  - at least one C++ app and at least one Python app
+  - vary the STRENGTH to establish the primary vs. secondary order
+  - observe the **SteeringColumn** app printing out matching controllers as they are discovered
+- Run **RTI Admin Console**
+  - observe the data flows and the running applications
+  - explore the data flows and the QosPolicies
+
+Once the apps are running:
+
+- Use the slider on the **SteeringController** python apps to set new steering commands
+  - observe that the **SteeringColumn** only responds to the highest STRENGTH
+    **SteeringController** (the primary one, as determined by STRENGTH)
+
+- Suspend (Ctrl-Z) one or more of the **SteeringController** apps
+  - observe the **SteeringColumn** app detect the liveliness change and fall back to next highest
+    strength controller
+  - observe the **SteeringDisplay** apps now show the result of the new controller commands
+
+- Suspend all **SteeringController** apps, and observe the **SteeringColumn** steer to a safe state
+
+- Terminate a **SteeringController** app
+  - observe the **SteeringColumn** detect the change, and print the new count for matched controllers
+
+- Terminate all **SteeringController** apps, and observe the **SteeringColumn** steer to a safe state
+
+
+
+### Key Benefits
+
+The key benefits of RTI Connext utilized by the demo include:
+
+- Data-Oriented Architecture: applications interact only with the data
+- LIVELINESS QosPolicy for detecting when controllers become inactive, and automatic
+  failover between controllers
+- OWNERSHIP and OWNERSHIP_STRENGTH QosPolicies for asserting exactly one primary controller, and
+  achieving failover based on ownership strength
+- RELIABLE QosPolicy with KEEP_LAST 1 HISTORY QosPolicy to act on the current command
+- Automatic Discovery of applications across (no additional configuration required)
+- Multiple host platforms
+- Alternate implementations (C++, Python) of data interfaces described in DDS-XML
+
+
 ## Common Data Architecture
 
-The sofware system data architecture artifacts are defined in the common data
-architecture repository submodule: [bus](bus)
+The data interfaces are defined in a separate *common data architecture* repository referenced via the
+[bus](bus) submodule.
 
 Browse the software system data architecture using [RTI System Designer](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/tools/system_designer/index.html):
 
